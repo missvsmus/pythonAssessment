@@ -106,7 +106,7 @@ function renderStudent() {
 
   show("student-screen");
 
-  $("question-label").textContent = `Question ${state.question.id}`;
+  //$("question-label").textContent = `Question ${state.question.id}`;
   $("assessment-status").textContent =
     state.question.submitted ? "Submitted" : "In progress";
 

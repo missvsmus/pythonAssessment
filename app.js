@@ -24,7 +24,7 @@ async function api(action, data = {}) {
     headers: {
       "Content-Type": "text/plain;charset=utf-8"
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ action, ...data })
   });
   
   const result = await response.json();

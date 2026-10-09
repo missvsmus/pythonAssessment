@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Coding Assessment</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <h1>Python Coding Assessment</h1>
+        <p id="student-status" class="muted"></p>
+      </div>
+      <button id="logout-btn" class="secondary hidden">Log out</button>
+    </header>
+
+    <main>
+      <!-- Login -->
+      <section id="login-screen" class="card narrow">
+        <h2>Student Login</h2>
+        <p>Enter the unique access code provided by your teacher.</p>
+        <label for="access-code">Access code</label>
+        <input id="access-code" type="text" autocomplete="off" maxlength="20"
+               placeholder="Enter your code">
+        <button id="login-btn">Start Assessment</button>
+        <p id="login-error" class="error"></p>
+      </section>
+
+      <!-- Student -->
+      <section id="student-screen" class="hidden">
+        <div class="progress-row">
+          <span id="question-label"></span>
+          <span id="assessment-status"></span>
+        </div>
+
+        <div class="student-grid">
+          <article class="card question-card">
+            <div class="eyebrow">CURRENT CHALLENGE</div>
+            <h2 id="question-title"></h2>
+            <div id="question-text" class="question-text"></div>
+
+            <div id="starter-info" class="starter-info hidden">
+              <h3>Instructions</h3>
+              <p id="starter-text"></p>
+            </div>
+          </article>
+
+          <article class="card editor-card">
+            <div class="editor-header">
+              <h2>Your Python Code</h2>
+              <span id="save-status" class="muted">Not submitted</span>
+            </div>
+            <textarea id="code-editor" spellcheck="false"
+              placeholder="# Write your Python code here"></textarea>
+
+            <div class="editor-actions">
+              <button id="run-btn" class="secondary">Run / Test</button>
+              <button id="submit-btn">Submit Answer</button>
+            </div>
+
+            <div id="test-results" class="test-results">
+              <div class="muted">Your test results will appear here.</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Locked / finished -->
+      <section id="locked-screen" class="card narrow hidden">
+        <div class="success-icon">✓</div>
+        <h2>Assessment Submitted</h2>
+        <p id="locked-message">
+          Your assessment has been submitted. You no longer have access to the
+          assessment questions or previous answers.
+        </p>
+      </section>
+
+      <!-- Teacher -->
+      <section id="teacher-screen" class="hidden">
+        <div class="teacher-header">
+          <div>
+            <div class="eyebrow">TEACHER DASHBOARD</div>
+            <h2>Assessment Overview</h2>
+          </div>
+          <button id="refresh-btn" class="secondary">Refresh</button>
+        </div>
+
+        <div id="teacher-table-wrap" class="card"></div>
+
+        <div id="teacher-detail" class="card hidden">
+          <div class="detail-header">
+            <div>
+              <div class="eyebrow">STUDENT</div>
+              <h2 id="detail-name"></h2>
+              <p id="detail-current" class="muted"></p>
+            </div>
+            <button id="close-detail" class="secondary">Close</button>
+          </div>
+
+          <h3>Current Submission</h3>
+          <pre id="detail-code" class="code-display"></pre>
+
+          <h3>Choose next step</h3>
+          <div id="next-options" class="next-options"></div>
+
+          <h3>Assessment History</h3>
+          <div id="detail-history"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

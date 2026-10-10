@@ -6,6 +6,11 @@ let state = {
   selectedStudent: null
 };
 
+// Keep the student's access code in memory while this page is open so the
+// page can check for a teacher-assigned question without requiring re-login.
+let studentAccessCode = "";
+let studentPollTimer = null;
+
 const $ = id => document.getElementById(id);
 
 function show(id) {
@@ -20,13 +25,10 @@ async function api(action, data = {}) {
 
   const response = await fetch(API_URL, {
     method: "POST",
-    redirect: "follow",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8"
-    },
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify({ action, ...data })
   });
-  
+
   const result = await response.json();
 
   if (!result.ok) {
@@ -42,8 +44,12 @@ $("access-code").addEventListener("keydown", e => {
 });
 
 $("logout-btn").addEventListener("click", () => {
-  state = { role: null, student: null, question: null };
+  if (studentPollTimer) clearTimeout(studentPollTimer);
+  studentPollTimer = null;
+  studentAccessCode = "";
+  state = { role: null, student: null, question: null, teacherStudents: [], selectedStudent: null };
   localStorage.removeItem("assessmentSession");
+  localStorage.removeItem("assessmentTeacherToken");
   $("student-status").textContent = "";
   $("logout-btn").classList.add("hidden");
   show("login-screen");
@@ -72,6 +78,7 @@ async function login() {
       state.role = "student";
       state.student = result.student;
       state.question = result.question;
+      studentAccessCode = code;
 
       if (result.sessionToken) {
         localStorage.setItem("assessmentSession", result.sessionToken);
@@ -87,6 +94,7 @@ async function login() {
           ? "Your answer has been submitted. Your teacher will give you your next question."
           : "Your assessment has been completed.";
         show("locked-screen");
+        if (result.waiting) startStudentPolling();
       } else {
         renderStudent();
       }
@@ -106,7 +114,7 @@ function renderStudent() {
 
   show("student-screen");
 
-  //$("question-label").textContent = `Question ${state.question.id}`;
+  $("question-label").textContent = `Question ${state.question.id}`;
   $("assessment-status").textContent =
     state.question.submitted ? "Submitted" : "In progress";
 
@@ -159,12 +167,53 @@ $("submit-btn").addEventListener("click", async () => {
       "Your answer has been submitted. Wait for your teacher to give you your next question.";
 
     show("locked-screen");
+    startStudentPolling();
   } catch (err) {
     $("save-status").textContent = "Submission failed";
     $("submit-btn").disabled = false;
     alert(err.message);
   }
 });
+
+
+// While a student is waiting, ask the existing login endpoint every 5 seconds.
+// When the teacher advances them, login_ returns the new question and session token.
+function startStudentPolling() {
+  if (studentPollTimer) clearTimeout(studentPollTimer);
+  if (state.role !== "student" || !state.student || !studentAccessCode || state.question) return;
+  studentPollTimer = setTimeout(pollStudentStatus, 5000);
+}
+
+async function pollStudentStatus() {
+  studentPollTimer = null;
+  if (state.role !== "student" || !state.student || !studentAccessCode || state.question) return;
+
+  try {
+    const result = await api("login", { code: studentAccessCode });
+
+    if (result.role === "student" && result.question) {
+      state.student = result.student;
+      state.question = result.question;
+      if (result.sessionToken) {
+        localStorage.setItem("assessmentSession", result.sessionToken);
+      }
+      $("student-status").textContent = `${result.student.name} — your next question is ready.`;
+      renderStudent();
+      return;
+    }
+
+    if (result.role === "student" && !result.question && !result.waiting) {
+      $("locked-message").textContent = "Your assessment has been completed.";
+      show("locked-screen");
+      return;
+    }
+  } catch (err) {
+    // A temporary network error should not log the student out. Try again shortly.
+    console.warn("Could not check for the next question yet:", err);
+  }
+
+  startStudentPolling();
+}
 
 async function loadTeacherDashboard() {
   show("teacher-screen");

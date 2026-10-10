@@ -92,7 +92,7 @@ async function login() {
       if (!result.question) {
         $("locked-message").textContent = result.waiting
           ? "Your answer has been submitted. Your teacher will give you your next question."
-          : "Your assessment has been completed.";
+          : "Your assessment has been completed. You can now logout.";
         show("locked-screen");
         if (result.waiting) startStudentPolling();
       } else {

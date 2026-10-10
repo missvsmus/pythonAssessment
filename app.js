@@ -49,6 +49,59 @@ $("access-code").addEventListener("keydown", e => {
   if (e.key === "Enter") login();
 });
 
+
+// Make Tab indent Python code in the editor instead of moving focus to Run/Test.
+// Four spaces are used because Python conventionally uses four spaces per level.
+$("code-editor").addEventListener("keydown", e => {
+  if (e.key !== "Tab") return;
+
+  const editor = e.currentTarget;
+  e.preventDefault();
+
+  const value = editor.value;
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const indent = "    ";
+
+  // Shift+Tab removes one indentation level from the current line.
+  if (e.shiftKey) {
+    const lineStart = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const line = value.slice(lineStart);
+    let removeCount = 0;
+    if (line.startsWith(indent)) removeCount = indent.length;
+    else if (line.startsWith(" ")) removeCount = 1;
+    else if (line.startsWith("\t")) removeCount = 1;
+
+    if (removeCount > 0) {
+      editor.value = value.slice(0, lineStart) + value.slice(lineStart + removeCount);
+      const newStart = Math.max(lineStart, start - removeCount);
+      const newEnd = Math.max(lineStart, end - removeCount);
+      editor.setSelectionRange(newStart, newEnd);
+    }
+    return;
+  }
+
+  // With a multi-line selection, indent every selected line.
+  if (value.slice(start, end).includes("\n")) {
+    const selectionStartLine = value.lastIndexOf("\n", Math.max(0, start - 1)) + 1;
+    const nextLineAfterEnd = value.indexOf("\n", end);
+    const selectionEndLine = nextLineAfterEnd === -1 ? value.length : nextLineAfterEnd;
+    const selectedLines = value.slice(selectionStartLine, selectionEndLine);
+    const indentedLines = selectedLines.split("\n").map(line => indent + line).join("\n");
+    editor.value = value.slice(0, selectionStartLine) + indentedLines + value.slice(selectionEndLine);
+    const addedBeforeStart = indent.length;
+    const lineCountBeforeEnd = value.slice(selectionStartLine, end).split("\n").length;
+    const addedBeforeEnd = indent.length * lineCountBeforeEnd;
+    editor.setSelectionRange(start + addedBeforeStart, end + addedBeforeEnd);
+    return;
+  }
+
+  // Otherwise insert four spaces at the cursor, replacing any selection.
+  editor.value = value.slice(0, start) + indent + value.slice(end);
+  const cursor = start + indent.length;
+  editor.setSelectionRange(cursor, cursor);
+});
+
 $("logout-btn").addEventListener("click", () => {
   if (studentPollTimer) clearTimeout(studentPollTimer);
   studentPollTimer = null;

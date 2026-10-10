@@ -10,6 +10,12 @@ let state = {
 // page can check for a teacher-assigned question without requiring re-login.
 let studentAccessCode = "";
 let studentPollTimer = null;
+let pythonWorker = null;
+let pythonWorkerReady = false;
+let pythonPendingRun = null;
+let pythonRunTimer = null;
+let pythonLoadTimer = null;
+let pythonRunId = 0;
 
 const $ = id => document.getElementById(id);
 
@@ -136,13 +142,121 @@ function renderStudent() {
   $("run-btn").disabled = !!state.question.submitted;
 }
 
-$("run-btn").addEventListener("click", async () => {
-  // Phase 1 intentionally does not execute Python.
-  // We will add the secure test runner after the assessment workflow is working.
-  $("test-results").textContent =
-    "Python testing will be connected here in Phase 2.\n\n" +
-    "For now, this button confirms where your question-specific testing system will go.";
+$("run-btn").addEventListener("click", () => {
+  const code = $("code-editor").value;
+  const button = $("run-btn");
+  button.disabled = true;
+  button.textContent = "Running…";
+  $("test-results").textContent = "Starting Python…\nThe first run may take a little longer while Python loads.";
+
+  const runId = ++pythonRunId;
+  pythonPendingRun = { runId, code };
+
+  if (pythonWorkerReady && pythonWorker) {
+    sendPythonCode();
+    return;
+  }
+
+  if (!pythonWorker) {
+    try {
+      pythonWorker = new Worker(new URL("python-runner.js", document.baseURI));
+      pythonWorker.onmessage = handlePythonWorkerMessage;
+      pythonWorker.onerror = (event) => {
+        showPythonError("Could not start the Python runtime. Check your internet connection and try again.");
+        console.error("Python worker error:", event.message || event);
+        stopPythonWorker();
+      };
+      pythonLoadTimer = setTimeout(() => {
+        showPythonError("Python took too long to load. Check your connection and try Run/Test again.");
+        stopPythonWorker();
+      }, 60000);
+    } catch (err) {
+      showPythonError("Your browser could not start the Python sandbox: " + err.message);
+      stopPythonWorker();
+    }
+  }
 });
+
+function handlePythonWorkerMessage(event) {
+  const message = event.data || {};
+
+  if (message.type === "status") {
+    $("test-results").textContent = message.message || "Loading Python…";
+    return;
+  }
+
+  if (message.type === "ready") {
+    pythonWorkerReady = true;
+    if (pythonLoadTimer) clearTimeout(pythonLoadTimer);
+    pythonLoadTimer = null;
+    sendPythonCode();
+    return;
+  }
+
+  if (message.type === "running") {
+    $("test-results").textContent = "Running your code…";
+    if (pythonRunTimer) clearTimeout(pythonRunTimer);
+    pythonRunTimer = setTimeout(() => {
+      showPythonError("Execution stopped because it ran for more than 3 seconds. Check for an infinite loop and try again.");
+      stopPythonWorker();
+    }, 3000);
+    return;
+  }
+
+  if (message.type === "result") {
+    if (pythonRunTimer) clearTimeout(pythonRunTimer);
+    pythonRunTimer = null;
+    const output = message.output || "(No output. Use print() to display values.)";
+    $("test-results").textContent = output;
+    finishPythonRun();
+    return;
+  }
+
+  if (message.type === "error") {
+    if (pythonRunTimer) clearTimeout(pythonRunTimer);
+    pythonRunTimer = null;
+    const parts = [];
+    if (message.output) parts.push(message.output);
+    parts.push(message.error || "Python encountered an error.");
+    $("test-results").textContent = parts.join("\n");
+    if (!pythonWorkerReady) {
+      // Initialization failed; clear the worker so the next click can retry.
+      stopPythonWorker();
+    } else {
+      finishPythonRun();
+    }
+  }
+}
+
+function sendPythonCode() {
+  if (!pythonWorker || !pythonWorkerReady || !pythonPendingRun) return;
+  if (pythonLoadTimer) clearTimeout(pythonLoadTimer);
+  pythonLoadTimer = null;
+  pythonWorker.postMessage({ type: "run", code: pythonPendingRun.code });
+  pythonPendingRun = null;
+}
+
+function finishPythonRun() {
+  $("run-btn").disabled = !!(state.question && state.question.submitted);
+  $("run-btn").textContent = "Run / Test";
+}
+
+function showPythonError(message) {
+  $("test-results").textContent = message;
+  finishPythonRun();
+}
+
+function stopPythonWorker() {
+  if (pythonWorker) pythonWorker.terminate();
+  pythonWorker = null;
+  pythonWorkerReady = false;
+  pythonPendingRun = null;
+  if (pythonRunTimer) clearTimeout(pythonRunTimer);
+  if (pythonLoadTimer) clearTimeout(pythonLoadTimer);
+  pythonRunTimer = null;
+  pythonLoadTimer = null;
+  finishPythonRun();
+}
 
 $("submit-btn").addEventListener("click", async () => {
   if (!confirm("Submit this answer? You will not be able to return to this question.")) {

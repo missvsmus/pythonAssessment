@@ -236,3 +236,14 @@ th { color: var(--muted); font-size: .85rem; }
   .student-grid { grid-template-columns: 1fr; }
   .question-card, .editor-card { min-height: auto; }
 }
+
+/* Append these styles to your existing style.css */
+.status-pill { font-weight: 700; border: 1px solid transparent; }
+.status-pill.status-waiting { background: #fff0bf; color: #7a4a00; border-color: #e9c46a; }
+.status-pill.status-working { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+.status-pill.status-complete { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+/* CodeMirror replaces the textarea visually but preserves its value through our JS helpers. */
+.editor-card .CodeMirror { height: 440px; min-height: 440px; margin-top: 14px; border: 1px solid #202938; border-radius: 8px; font-family: Consolas, Monaco, "Courier New", monospace; font-size: 14px; line-height: 1.5; }
+.editor-card .CodeMirror-scroll { min-height: 440px; }
+.editor-card .CodeMirror-focused { outline: 2px solid #80aaff; outline-offset: 1px; }
+

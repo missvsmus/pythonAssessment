@@ -50,6 +50,36 @@ $("access-code").addEventListener("keydown", e => {
 });
 
 
+// CodeMirror adds syntax highlighting without changing how answers are submitted.
+// If its CDN is unavailable, the original textarea and Tab handling still work.
+let codeMirrorEditor = null;
+if (window.CodeMirror) {
+  codeMirrorEditor = CodeMirror.fromTextArea($("code-editor"), {
+    mode: "python",
+    theme: "material-darker",
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: true,
+    extraKeys: {
+      Tab: cm => cm.replaceSelection("    ", "end", "+input"),
+      "Shift-Tab": cm => cm.execCommand("indentLess")
+    }
+  });
+}
+function getEditorCode() {
+  return codeMirrorEditor ? codeMirrorEditor.getValue() : $("code-editor").value;
+}
+function setEditorCode(code) {
+  if (codeMirrorEditor) codeMirrorEditor.setValue(code);
+  else $("code-editor").value = code;
+}
+function setEditorDisabled(disabled) {
+  $("code-editor").disabled = disabled;
+  if (codeMirrorEditor) codeMirrorEditor.setOption("readOnly", disabled ? "nocursor" : false);
+}
+if (!codeMirrorEditor) {
 // Capture Tab before the browser can move focus to the Run/Test button.
 // Use a document-level capture listener so it still works if other listeners
 // are added to the editor later.
@@ -99,6 +129,8 @@ document.addEventListener("keydown", e => {
   }
   editor.focus();
 }, true);
+
+}
 
 $("logout-btn").addEventListener("click", () => {
   if (studentPollTimer) clearTimeout(studentPollTimer);
@@ -187,14 +219,14 @@ function renderStudent() {
     $("starter-info").classList.add("hidden");
   }
 
-  $("code-editor").value = state.question.starterCode || "";
-  $("code-editor").disabled = !!state.question.submitted;
+  setEditorCode(state.question.starterCode || "");
+  setEditorDisabled(!!state.question.submitted);
   $("submit-btn").disabled = !!state.question.submitted;
   $("run-btn").disabled = !!state.question.submitted;
 }
 
 $("run-btn").addEventListener("click", () => {
-  const code = $("code-editor").value;
+  const code = getEditorCode();
   const button = $("run-btn");
   button.disabled = true;
   button.textContent = "Running…";
@@ -314,7 +346,7 @@ $("submit-btn").addEventListener("click", async () => {
     return;
   }
 
-  const code = $("code-editor").value;
+  const code = getEditorCode();
   $("submit-btn").disabled = true;
   $("save-status").textContent = "Submitting...";
 
@@ -401,7 +433,7 @@ function renderTeacherTable() {
     <tr>
       <td>${escapeHtml(student.name)}</td>
       <td>${escapeHtml(student.currentQuestion || "Not started")}</td>
-      <td><span class="status-pill">${escapeHtml(student.status)}</span></td>
+      <td><span class="status-pill status-${escapeHtml(String(student.status || "").trim().toLowerCase())}">${escapeHtml(student.status)}</span></td>
       <td><button class="secondary view-student" data-id="${escapeHtml(student.id)}">View</button></td>
     </tr>
   `).join("");

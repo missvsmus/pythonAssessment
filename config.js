@@ -2,7 +2,7 @@
 // Example:
 // const API_URL = "https://script.google.com/macros/s/XXXXXXXXXXXX/exec";
 
-const API_URL = "https://script.google.com/a/macros/smus.ca/s/AKfycbx0Gz047Ad5KfKdmvG1ZTaCd9Dpv7b7CsjMc5ZJH-q8rlaYhOilk6gSl9m_LhDgiJV8/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby1TOv2iX8ib4S_CsLJDDMA8UEYnyxU2gVYk-wiGPGgnVBILiRGS1kTVJ7lA7wX1ko/exec";
 
 // Teacher access is deliberately kept out of the student-facing UI.
 // For the first prototype, use a separate teacher code stored in Apps Script.

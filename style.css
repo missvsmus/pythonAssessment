@@ -237,7 +237,6 @@ th { color: var(--muted); font-size: .85rem; }
   .question-card, .editor-card { min-height: auto; }
 }
 
-/* Append these styles to your existing style.css */
 .status-pill { font-weight: 700; border: 1px solid transparent; }
 .status-pill.status-waiting { background: #fff0bf; color: #7a4a00; border-color: #e9c46a; }
 .status-pill.status-working { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
@@ -247,3 +246,12 @@ th { color: var(--muted); font-size: .85rem; }
 .editor-card .CodeMirror-scroll { min-height: 440px; }
 .editor-card .CodeMirror-focused { outline: 2px solid #80aaff; outline-offset: 1px; }
 
+/* Explicitly keep CodeMirror's line-number gutter alongside the code. */
+.editor-card .CodeMirror { position: relative; overflow: hidden; }
+.editor-card .CodeMirror-scroll { position: relative; overflow: scroll !important; }
+.editor-card .CodeMirror-gutters { position: absolute; left: 0; top: 0; min-height: 100%; border-right: 1px solid #374151; background: #111827; }
+.editor-card .CodeMirror-linenumbers { display: inline-block; }
+.editor-card .CodeMirror-linenumber { position: absolute; left: 0; right: 0; text-align: right; padding: 0 5px 0 0; color: #9ca3af; white-space: nowrap; }
+.editor-card .CodeMirror-lines { padding: 8px 0; }
+.editor-card .CodeMirror pre.CodeMirror-line,
+.editor-card .CodeMirror pre.CodeMirror-line-like { padding: 0 4px; border: 0; margin: 0; background: transparent; }

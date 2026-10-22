@@ -58,7 +58,7 @@ if (window.CodeMirror) {
   codeMirrorEditor = CodeMirror.fromTextArea($("code-editor"), {
     mode: "python",
     theme: "material-darker",
-    lineNumbers: true,
+    lineNumbers: false,
     indentUnit: 4,
     tabSize: 4,
     indentWithTabs: false,

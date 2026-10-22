@@ -2,6 +2,7 @@ let state = {
   role: null,
   student: null,
   question: null,
+  questionNumber: 1,
   teacherStudents: [],
   selectedStudent: null
 };
@@ -167,6 +168,7 @@ async function login() {
       state.role = "student";
       state.student = result.student;
       state.question = result.question;
+      state.questionNumber = result.questionNumber || 1;
       studentAccessCode = code;
 
       if (result.sessionToken) {
@@ -203,12 +205,12 @@ function renderStudent() {
 
   show("student-screen");
 
-  //$("question-label").textContent = `Question ${state.question.id}`;
+  $("question-label").textContent = `Question ${state.questionNumber || 1}`;
   $("assessment-status").textContent =
     state.question.submitted ? "Submitted" : "In progress";
 
   $("question-title").textContent =
-    state.question.title || `Question ${state.question.id}`;
+    state.question.title || `Challenge ${state.question.id}`;
 
   $("question-text").textContent = state.question.text || "";
 
@@ -391,6 +393,7 @@ async function pollStudentStatus() {
     if (result.role === "student" && result.question) {
       state.student = result.student;
       state.question = result.question;
+      state.questionNumber = result.questionNumber || 1;
       if (result.sessionToken) {
         localStorage.setItem("assessmentSession", result.sessionToken);
       }

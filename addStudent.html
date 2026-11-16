@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Students</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .admin-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    .admin-card {
+      background: var(--card-bg, white);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border, #ddd);
+    }
+
+    .admin-card h1 {
+      margin-top: 0;
+    }
+
+    .admin-card input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0 18px;
+      font-size: 16px;
+    }
+
+    .admin-card button {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    .admin-card button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .error {
+      display: block;
+      background: #fde8e8;
+      color: #9b1c1c;
+    }
+
+    .success {
+      display: block;
+      background: #e5f6eb;
+      color: #176b3a;
+    }
+
+    .student-result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #e5f6eb;
+      border: 1px solid #72c995;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .access-code {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      margin: 10px 0;
+    }
+
+    .result-row {
+      margin: 10px 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="admin-container">
+
+    <!-- Login -->
+    <section id="login-screen" class="admin-card">
+      <h1>Teacher Login</h1>
+      <p>Enter your teacher access code to manage students.</p>
+
+      <form id="login-form">
+        <label for="teacher-code">Teacher access code</label>
+        <input
+          type="password"
+          id="teacher-code"
+          required
+          autocomplete="current-password"
+        >
+
+        <button type="submit" id="login-btn">
+          Log In
+        </button>
+      </form>
+
+      <div id="login-message" class="message"></div>
+    </section>
+
+
+    <!-- Add Students -->
+    <section id="admin-screen" class="admin-card hidden">
+
+      <div class="top-bar">
+        <h1>Add Students</h1>
+        <button type="button" id="logout-btn">
+          Log Out
+        </button>
+      </div>
+
+      <p>
+        Enter a student's name to generate their unique
+        seven-character access code.
+      </p>
+
+      <form id="student-form">
+        <label for="student-name">Student name</label>
+
+        <input
+          type="text"
+          id="student-name"
+          placeholder="e.g. Alex Smith"
+          required
+        >
+
+        <button type="submit" id="add-btn">
+          Add Student
+        </button>
+      </form>
+
+      <div id="add-message" class="message"></div>
+
+      <div id="student-result" class="student-result">
+        <h2>Student Added!</h2>
+
+        <div class="result-row">
+          <strong>Name:</strong>
+          <span id="result-name"></span>
+        </div>
+
+        <div class="result-row">
+          <strong>Access code:</strong>
+          <div id="result-code" class="access-code"></div>
+        </div>
+
+        <div class="result-row">
+          <strong>Starting question:</strong>
+          <span id="result-question"></span>
+        </div>
+
+        <button type="button" id="copy-code-btn">
+          Copy Access Code
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="config.js"></script>
+
+  <script>
+    let teacherToken = null;
+    let lastAccessCode = "";
+
+    const $ = id => document.getElementById(id);
+
+
+    // Send requests to the existing Apps Script backend.
+    async function apiRequest(data) {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!result.ok) {
+        throw new Error(result.error || "Something went wrong.");
+      }
+
+      return result;
+    }
+
+
+    function showMessage(elementId, message, type) {
+      const element = $(elementId);
+
+      element.textContent = message;
+      element.className = "message " + type;
+    }
+
+
+    // Teacher login
+    $("login-form").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = $("login-btn");
+      button.disabled = true;
+      button.textContent = "Logging in...";
+
+      try {
+        const code = $("teacher-code").value.trim();
+
+        const result = await apiRequest({
+          action: "login",
+          code: code
+        });
+
+        if (result.role !== "teacher") {
+          throw new Error("Teacher access required.");
+        }
+
+        teacherToken = result.teacherToken;
+
+        $("login-screen").classList.add("hidden");
+        $("admin-screen").classList.remove("hidden");
+
+        $("student-name").focus();
+
+      } catch (error) {
+        showMessage("login-message", error.message, "error");
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Log In";
+      }
+    });
+
+
+    // Add a student
+    $("student-form").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = $("add-btn");
+      const name = $("student-name").value.trim();
+
+      if (!name) return;
+
+      button.disabled = true;
+      button.textContent = "Adding student...";
+
+      $("student-result").style.display = "none";
+      $("add-message").className = "message";
+
+      try {
+        const result = await apiRequest({
+          action: "addStudent",
+          teacherToken: teacherToken,
+          name: name
+        });
+
+        const student = result.student;
+
+        lastAccessCode = student.accessCode;
+
+        $("result-name").textContent = student.name;
+        $("result-code").textContent = student.accessCode;
+        $("result-question").textContent = student.currentQuestion;
+
+        $("student-result").style.display = "block";
+
+        $("student-name").value = "";
+        $("student-name").focus();
+
+      } catch (error) {
+        showMessage("add-message", error.message, "error");
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Add Student";
+      }
+    });
+
+
+    // Copy the access code
+    $("copy-code-btn").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(lastAccessCode);
+
+        $("copy-code-btn").textContent = "Copied!";
+
+        setTimeout(() => {
+          $("copy-code-btn").textContent = "Copy Access Code";
+        }, 2000);
+
+      } catch (error) {
+        showMessage(
+          "add-message",
+          "Unable to copy automatically. Please copy the code manually.",
+          "error"
+        );
+      }
+    });
+
+
+    // Log out
+    $("logout-btn").addEventListener("click", () => {
+      teacherToken = null;
+
+      $("admin-screen").classList.add("hidden");
+      $("login-screen").classList.remove("hidden");
+
+      $("teacher-code").value = "";
+      $("login-message").className = "message";
+      $("student-result").style.display = "none";
+    });
+
+  </script>
+
+</body>
+</html>

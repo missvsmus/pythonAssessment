@@ -246,6 +246,8 @@ function renderStudent() {
     $("written-response").value = state.question.starterAnswer || "";
     $("written-response").disabled = submitted;
   } else {
+    console.log("Question received:", state.question);
+    console.log("Starter code received:", state.question.starterCode);
     setEditorCode(state.question.starterCode || "");
     setEditorDisabled(submitted);
   }

@@ -533,8 +533,14 @@ function renderTeacherDetail(data) {
   $("detail-current").textContent =
     `Current question: ${data.currentQuestion || "None"}`;
 
+  // Display the question the student was answering.
+  $("detail-question-text").textContent =
+    data.question
+      ? `${data.question.title || data.question.id}\n\n${data.question.text || ""}`
+      : "(Question details unavailable)";
+  
   const submission = data.currentSubmission;
-
+  
   $("detail-code").textContent =
     submission?.response ??
     submission?.answer ??

@@ -237,7 +237,7 @@ function renderStudent() {
 
   // Load the appropriate starting content
   $("code-editor").value = state.question.starterCode || "";
-  $("written-response").value = state.question.starterText || "";
+  $("written-response").value = "";
 
   $("code-editor").disabled = !!state.question.submitted;
   $("written-response").disabled = !!state.question.submitted;

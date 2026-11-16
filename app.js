@@ -205,12 +205,14 @@ function renderStudent() {
 
   show("student-screen");
 
-  $("question-label").textContent = `Question ${state.questionNumber || 1}`;
+  const questionType = (state.question.type || "code").toLowerCase();
+  const isWritten = questionType === "written";
+
   $("assessment-status").textContent =
     state.question.submitted ? "Submitted" : "In progress";
 
   $("question-title").textContent =
-    state.question.title || `Challenge ${state.question.id}`;
+    state.question.title || `Question ${state.question.id}`;
 
   $("question-text").textContent = state.question.text || "";
 
@@ -221,8 +223,25 @@ function renderStudent() {
     $("starter-info").classList.add("hidden");
   }
 
-  setEditorCode(state.question.starterCode || "");
-  setEditorDisabled(!!state.question.submitted);
+  // Show the appropriate response area
+  $("editor-title").textContent = isWritten
+    ? "Your Written Response"
+    : "Your Python Code";
+
+  $("code-input-area").classList.toggle("hidden", isWritten);
+  $("written-input-area").classList.toggle("hidden", !isWritten);
+
+  // Only show Run/Test for coding questions
+  $("run-btn").classList.toggle("hidden", isWritten);
+  $("test-results").classList.toggle("hidden", isWritten);
+
+  // Load the appropriate starting content
+  $("code-editor").value = state.question.starterCode || "";
+  $("written-response").value = state.question.starterText || "";
+
+  $("code-editor").disabled = !!state.question.submitted;
+  $("written-response").disabled = !!state.question.submitted;
+
   $("submit-btn").disabled = !!state.question.submitted;
   $("run-btn").disabled = !!state.question.submitted;
 }
@@ -348,15 +367,29 @@ $("submit-btn").addEventListener("click", async () => {
     return;
   }
 
-  const code = getEditorCode();
+  const questionType = (state.question.type || "code").toLowerCase();
+  const isWritten = questionType === "written";
+
+  const response = isWritten
+    ? $("written-response").value
+    : $("code-editor").value;
+
+  if (!response.trim()) {
+    alert(isWritten
+      ? "Please enter a written response before submitting."
+      : "Please enter your Python code before submitting.");
+    return;
+  }
+
   $("submit-btn").disabled = true;
   $("save-status").textContent = "Submitting...";
 
   try {
-    const result = await api("submit", {
+    await api("submit", {
       sessionToken: localStorage.getItem("assessmentSession"),
       questionId: state.question.id,
-      code
+      code: isWritten ? undefined : response,
+      answer: isWritten ? response : undefined
     });
 
     state.question = null;
@@ -367,6 +400,7 @@ $("submit-btn").addEventListener("click", async () => {
 
     show("locked-screen");
     startStudentPolling();
+
   } catch (err) {
     $("save-status").textContent = "Submission failed";
     $("submit-btn").disabled = false;
@@ -485,7 +519,16 @@ function renderTeacherDetail(data) {
   $("detail-current").textContent =
     `Current question: ${data.currentQuestion || "None"}`;
 
-  $("detail-code").textContent = data.currentSubmission?.code || "(No submission yet)";
+  const submissionType = data.currentSubmission?.type || "code";
+
+  $("detail-code").textContent =
+    data.currentSubmission?.response ||
+    data.currentSubmission?.answer ||
+    data.currentSubmission?.code ||
+    "(No submission yet)";
+  
+  $("detail-code").style.whiteSpace = "pre-wrap";
+  $("detail-code").style.fontFamily = submissionType === "written" ? "inherit" : "monospace";
 
   const options = data.nextOptions || [];
   $("next-options").innerHTML = options.length

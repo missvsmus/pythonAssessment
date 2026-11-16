@@ -93,6 +93,79 @@
       align-items: center;
       margin-bottom: 20px;
     }
+    
+    /* Student access card printing */
+    
+    #print-area {
+      display: none;
+    }
+    
+    @media print {
+      @page {
+        size: letter portrait;
+        margin: 0.35in;
+      }
+    
+      body * {
+        visibility: hidden;
+      }
+    
+      #print-area,
+      #print-area * {
+        visibility: visible;
+      }
+    
+      #print-area {
+        display: grid !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 2.35in;
+        gap: 0.15in;
+        box-sizing: border-box;
+      }
+    
+      .access-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border: 1.5px dashed #555;
+        padding: 0.15in;
+        box-sizing: border-box;
+        height: 2.35in;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        color: #000;
+        font-family: Arial, sans-serif;
+      }
+    
+      .access-card h2 {
+        font-size: 15pt;
+        margin: 0 0 12pt;
+      }
+    
+      .access-card .card-label {
+        font-size: 9pt;
+        margin-bottom: 5pt;
+      }
+    
+      .access-card .card-code {
+        font-size: 27pt;
+        font-weight: bold;
+        letter-spacing: 4pt;
+        margin: 5pt 0 12pt;
+      }
+    
+      .access-card .card-instructions {
+        font-size: 9pt;
+        margin: 0;
+      }
+    }
+
   </style>
 </head>
 
@@ -177,7 +250,15 @@
           Copy Access Code
         </button>
       </div>
-
+      
+      <div style="margin-top: 25px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <h2>Student Access Cards</h2>
+        <p>Print a set of individual access cards for your class.</p>
+      
+        <button type="button" id="print-cards-btn">
+          Print All Student Cards
+        </button>
+      </div>
     </section>
 
   </main>
@@ -331,7 +412,84 @@
       $("student-result").style.display = "none";
     });
 
+    
+    // Print all student access cards
+    $("print-cards-btn").addEventListener("click", async () => {
+      const button = $("print-cards-btn");
+    
+      button.disabled = true;
+      button.textContent = "Preparing cards...";
+    
+      try {
+        const result = await apiRequest({
+          action: "listStudents",
+          teacherToken: teacherToken
+        });
+    
+        if (!result.students.length) {
+          throw new Error("There are no students to print.");
+        }
+    
+        const printArea = $("print-area");
+        printArea.replaceChildren();
+    
+        result.students.forEach(student => {
+          const card = document.createElement("div");
+          card.className = "access-card";
+    
+          const heading = document.createElement("h2");
+          heading.textContent = "Python Coding Quiz";
+    
+          const name = document.createElement("div");
+          name.className = "card-label";
+          name.textContent = student.name;
+    
+          const codeLabel = document.createElement("div");
+          codeLabel.className = "card-label";
+          codeLabel.textContent = "YOUR ACCESS CODE";
+    
+          const code = document.createElement("div");
+          code.className = "card-code";
+          code.textContent = student.accessCode;
+    
+          const instructions = document.createElement("p");
+          instructions.className = "card-instructions";
+          instructions.textContent =
+            "Enter this code on the quiz login page.";
+    
+          card.append(
+            heading,
+            name,
+            codeLabel,
+            code,
+            instructions
+          );
+    
+          printArea.appendChild(card);
+        });
+    
+        // Temporarily show the cards and open the print dialog.
+        printArea.style.display = "grid";
+    
+        window.print();
+    
+        // Clear the print area after printing or cancelling.
+        window.addEventListener("afterprint", () => {
+          printArea.replaceChildren();
+          printArea.style.display = "none";
+        }, { once: true });
+    
+      } catch (error) {
+        showMessage("add-message", error.message, "error");
+    
+      } finally {
+        button.disabled = false;
+        button.textContent = "Print All Student Cards";
+      }
+    });
+
   </script>
 
+<div id="print-area"></div>
 </body>
 </html>

@@ -51,17 +51,25 @@
 
           <article class="card editor-card">
             <div class="editor-header">
-              <h2>Your Python Code</h2>
+              <h2 id="editor-title">Your Python Code</h2>
               <span id="save-status" class="muted">Not submitted</span>
             </div>
-            <textarea id="code-editor" spellcheck="false"
-              placeholder="# Write your Python code here"></textarea>
-
+          
+            <div id="code-input-area">
+              <textarea id="code-editor" spellcheck="false"
+                placeholder="# Write your Python code here"></textarea>
+            </div>
+          
+            <div id="written-input-area" class="hidden">
+              <textarea id="written-response"
+                placeholder="Write your response here..."></textarea>
+            </div>
+          
             <div class="editor-actions">
               <button id="run-btn" class="secondary">Run / Test</button>
               <button id="submit-btn">Submit Answer</button>
             </div>
-
+          
             <div id="test-results" class="test-results">
               <div class="muted">Your test results will appear here.</div>
             </div>

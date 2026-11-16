@@ -20,6 +20,10 @@ let pythonRunId = 0;
 
 const $ = id => document.getElementById(id);
 
+function isWrittenQuestion() {
+  return String(state.question?.type || "code").toLowerCase() === "written";
+}
+
 function show(id) {
   document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
   $(id).classList.remove("hidden");
@@ -205,14 +209,15 @@ function renderStudent() {
 
   show("student-screen");
 
-  const questionType = (state.question.type || "code").toLowerCase();
-  const isWritten = questionType === "written";
-
+  const written = isWrittenQuestion();
+  const submitted = !!state.question.submitted;
+  
+  $("question-label").textContent = `Question ${state.questionNumber || 1}`;
   $("assessment-status").textContent =
-    state.question.submitted ? "Submitted" : "In progress";
+    submitted ? "Submitted" : "In progress";
 
   $("question-title").textContent =
-    state.question.title || `Question ${state.question.id}`;
+    state.question.title || `Challenge ${state.question.id}`;
 
   $("question-text").textContent = state.question.text || "";
 
@@ -223,30 +228,35 @@ function renderStudent() {
     $("starter-info").classList.add("hidden");
   }
 
-  // Show the appropriate response area
-  $("editor-title").textContent = isWritten
+  // Switch between the Python editor and written-response textarea.
+  $("code-input-area").classList.toggle("hidden", written);
+  $("written-input-area").classList.toggle("hidden", !written);
+
+  // Update the editor heading.
+  $("editor-title").textContent = written
     ? "Your Written Response"
     : "Your Python Code";
 
-  $("code-input-area").classList.toggle("hidden", isWritten);
-  $("written-input-area").classList.toggle("hidden", !isWritten);
+  // Only show Python testing controls for code questions.
+  $("run-btn").classList.toggle("hidden", written);
+  $("test-results").classList.toggle("hidden", written);
 
-  // Only show Run/Test for coding questions
-  $("run-btn").classList.toggle("hidden", isWritten);
-  $("test-results").classList.toggle("hidden", isWritten);
-
-  // Load the appropriate starting content
-  $("code-editor").value = state.question.starterCode || "";
-  $("written-response").value = "";
-
-  $("code-editor").disabled = !!state.question.submitted;
-  $("written-response").disabled = !!state.question.submitted;
-
-  $("submit-btn").disabled = !!state.question.submitted;
-  $("run-btn").disabled = !!state.question.submitted;
+  // Load the appropriate starting content.
+  if (written) {
+    $("written-response").value = state.question.starterAnswer || "";
+    $("written-response").disabled = submitted;
+  } else {
+    setEditorCode(state.question.starterCode || "");
+    setEditorDisabled(submitted);
+  }
+  
+  $("submit-btn").disabled = submitted;
+  $("run-btn").disabled = submitted;
 }
 
 $("run-btn").addEventListener("click", () => {
+  if (isWrittenQuestion()) return;
+  
   const code = getEditorCode();
   const button = $("run-btn");
   button.disabled = true;
@@ -363,34 +373,36 @@ function stopPythonWorker() {
 }
 
 $("submit-btn").addEventListener("click", async () => {
+  if (!state.question) return;
+
   if (!confirm("Submit this answer? You will not be able to return to this question.")) {
     return;
   }
 
-  const questionType = (state.question.type || "code").toLowerCase();
-  const isWritten = questionType === "written";
+  const written = isWrittenQuestion();
 
-  const response = isWritten
+  // Read from the appropriate input.
+  const answer = written
     ? $("written-response").value
-    : $("code-editor").value;
-
-  if (!response.trim()) {
-    alert(isWritten
-      ? "Please enter a written response before submitting."
-      : "Please enter your Python code before submitting.");
-    return;
-  }
+    : getEditorCode();
 
   $("submit-btn").disabled = true;
   $("save-status").textContent = "Submitting...";
 
   try {
-    await api("submit", {
+    const submissionData = {
       sessionToken: localStorage.getItem("assessmentSession"),
-      questionId: state.question.id,
-      code: isWritten ? undefined : response,
-      answer: isWritten ? response : undefined
-    });
+      questionId: state.question.id
+    };
+
+    // Send the response using the field expected by the backend.
+    if (written) {
+      submissionData.answer = answer;
+    } else {
+      submissionData.code = answer;
+    }
+
+    await api("submit", submissionData);
 
     state.question = null;
     localStorage.removeItem("assessmentSession");
@@ -519,16 +531,18 @@ function renderTeacherDetail(data) {
   $("detail-current").textContent =
     `Current question: ${data.currentQuestion || "None"}`;
 
-  const submissionType = data.currentSubmission?.type || "code";
+  const submission = data.currentSubmission;
 
   $("detail-code").textContent =
-    data.currentSubmission?.response ||
-    data.currentSubmission?.answer ||
-    data.currentSubmission?.code ||
+    submission?.response ??
+    submission?.answer ??
+    submission?.code ??
     "(No submission yet)";
   
   $("detail-code").style.whiteSpace = "pre-wrap";
-  $("detail-code").style.fontFamily = submissionType === "written" ? "inherit" : "monospace";
+  
+  $("detail-code").style.fontFamily =
+    submission?.type === "written" ? "inherit" : "monospace";
 
   const options = data.nextOptions || [];
   $("next-options").innerHTML = options.length

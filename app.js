@@ -185,10 +185,22 @@ async function login() {
       $("logout-btn").classList.remove("hidden");
 
       if (!result.question) {
-        $("locked-message").textContent = result.waiting
-          ? "Your answer has been submitted. Your teacher will give you your next question."
-          : "Your assessment has been completed. You can now logout.";
+        const completed = !result.waiting;
+      
+        $("completion-title").textContent = completed
+          ? "Congratulations! You have completed your quiz!"
+          : "Answer Submitted";
+      
+        $("completion-icon").textContent = completed ? "🎉" : "✓";
+      
+        $("locked-message").textContent = completed
+          ? "You have successfully completed your assessment. Well done!"
+          : "Your answer has been submitted. Your teacher will give you your next question.";
+      
+        $("locked-screen").classList.toggle("completed", completed);
+      
         show("locked-screen");
+      
         if (result.waiting) startStudentPolling();
       } else {
         renderStudent();
@@ -451,7 +463,16 @@ async function pollStudentStatus() {
     }
 
     if (result.role === "student" && !result.question && !result.waiting) {
-      $("locked-message").textContent = "Your assessment has been completed.";
+      $("completion-title").textContent =
+        "Congratulations! You have completed your quiz!";
+    
+      $("completion-icon").textContent = "🎉";
+    
+      $("locked-message").textContent =
+        "You have successfully completed your assessment. Well done!";
+    
+      $("locked-screen").classList.add("completed");
+    
       show("locked-screen");
       return;
     }

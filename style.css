@@ -289,3 +289,32 @@ th { color: var(--muted); font-size: .85rem; }
   opacity: 0.7;
   cursor: not-allowed;
 }
+
+.completion-card {
+  text-align: center;
+  padding: 50px 30px;
+  margin: 40px auto;
+}
+
+.completion-card.completed {
+  background: linear-gradient(135deg, #e8f8ee, #d2f2df);
+  border: 2px solid #72c995;
+  padding: 65px 35px;
+}
+
+.completion-card.completed .success-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.completion-card.completed h2 {
+  font-size: 30px;
+  color: #176b3a;
+  margin-bottom: 18px;
+}
+
+.completion-card.completed p {
+  font-size: 18px;
+  color: #285b3c;
+  line-height: 1.6;
+}

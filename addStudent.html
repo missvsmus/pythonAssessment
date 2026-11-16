@@ -95,9 +95,8 @@
     }
     
     /* Student access card printing */
-    
     #print-area {
-      display: none;
+      display: none !important;
     }
     
     @media print {
@@ -107,12 +106,12 @@
       }
     
       body * {
-        visibility: hidden;
+        visibility: hidden !important;
       }
     
       #print-area,
       #print-area * {
-        visibility: visible;
+        visibility: visible !important;
       }
     
       #print-area {
@@ -165,6 +164,7 @@
         margin: 0;
       }
     }
+
 
   </style>
 </head>
@@ -490,6 +490,6 @@
 
   </script>
 
-<div id="print-area" style="display:none"></div>
+<div id="print-area"></div>
 </body>
 </html>

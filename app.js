@@ -589,7 +589,269 @@ function renderTeacherDetail(data) {
       — ${escapeHtml(item.teacherDecision || "Waiting for teacher decision")}
     </div>
   `).join("");
+  
+  // Draw the student's question pathway.
+  renderQuestionPathway(data);
+  }
 }
+
+
+function renderQuestionPathway(data) {
+  const container = $("detail-pathway");
+  const questions = data.pathway || [];
+
+  if (!questions.length) {
+    container.textContent = "No question pathway information available.";
+    return;
+  }
+
+  const completed = new Set(
+    (data.history || []).map(item => String(item.questionId))
+  );
+
+  const currentQuestion = String(data.currentQuestion || "");
+
+  const byId = new Map(
+    questions.map(q => [String(q.id), q])
+  );
+
+  // Calculate the horizontal level of each question.
+  // The first question is the starting point.
+  const ranks = new Map();
+  const visited = new Set();
+
+  function assignRanks(startId, startRank) {
+    const queue = [{ id: startId, rank: startRank }];
+    let maxRank = startRank;
+
+    while (queue.length) {
+      const item = queue.shift();
+      const id = String(item.id);
+
+      if (visited.has(id)) continue;
+      if (!byId.has(id)) continue;
+
+      visited.add(id);
+      ranks.set(id, item.rank);
+      maxRank = Math.max(maxRank, item.rank);
+
+      const question = byId.get(id);
+
+      (question.nextOptions || []).forEach(nextId => {
+        const next = String(nextId);
+
+        if (!visited.has(next) && byId.has(next)) {
+          queue.push({
+            id: next,
+            rank: item.rank + 1
+          });
+        }
+      });
+    }
+
+    return maxRank;
+  }
+
+  let maxRank = 0;
+
+  // Start with the first question in the Questions sheet.
+  if (questions.length) {
+    maxRank = assignRanks(String(questions[0].id), 0);
+  }
+
+  // Also include disconnected questions or pathways.
+  questions.forEach(q => {
+    const id = String(q.id);
+
+    if (!visited.has(id)) {
+      maxRank = Math.max(
+        maxRank,
+        assignRanks(id, maxRank + 1)
+      );
+    }
+  });
+
+  // Group questions by horizontal level.
+  const columns = new Map();
+
+  questions.forEach(q => {
+    const id = String(q.id);
+    const rank = ranks.get(id) || 0;
+
+    if (!columns.has(rank)) {
+      columns.set(rank, []);
+    }
+
+    columns.get(rank).push(q);
+  });
+
+  const sortedRanks = [...columns.keys()].sort((a, b) => a - b);
+
+  const nodeWidth = 190;
+  const nodeHeight = 76;
+  const horizontalGap = 90;
+  const verticalGap = 45;
+  const margin = 30;
+
+  const maxRows = Math.max(
+    ...[...columns.values()].map(column => column.length)
+  );
+
+  const svgWidth =
+    margin * 2 +
+    (sortedRanks.length - 1) * (nodeWidth + horizontalGap) +
+    nodeWidth;
+
+  const svgHeight =
+    margin * 2 +
+    maxRows * (nodeHeight + verticalGap);
+
+  const positions = new Map();
+
+  sortedRanks.forEach((rank, columnIndex) => {
+    const column = columns.get(rank);
+
+    column.forEach((q, rowIndex) => {
+      positions.set(String(q.id), {
+        x: margin + columnIndex * (nodeWidth + horizontalGap),
+        y: margin + rowIndex * (nodeHeight + verticalGap)
+      });
+    });
+  });
+
+  // Draw connections first so they appear behind the question boxes.
+  let edges = "";
+
+  questions.forEach(q => {
+    const sourceId = String(q.id);
+    const source = positions.get(sourceId);
+
+    (q.nextOptions || []).forEach(nextId => {
+      const targetId = String(nextId);
+      const target = positions.get(targetId);
+
+      if (!source || !target) return;
+
+      const startX = source.x + nodeWidth;
+      const startY = source.y + nodeHeight / 2;
+      const endX = target.x;
+      const endY = target.y + nodeHeight / 2;
+
+      const controlOffset = Math.max(
+        35,
+        Math.abs(endX - startX) / 2
+      );
+
+      edges += `
+        <path
+          class="pathway-edge"
+          d="M ${startX} ${startY}
+             C ${startX + controlOffset} ${startY},
+               ${endX - controlOffset} ${endY},
+               ${endX} ${endY}"
+          marker-end="url(#pathway-arrow)"
+        />
+      `;
+    });
+  });
+
+  // Draw each question box.
+  let nodes = "";
+
+  questions.forEach(q => {
+    const id = String(q.id);
+    const pos = positions.get(id);
+
+    if (!pos) return;
+
+    let status = "incomplete";
+    let statusText = "Not completed";
+
+    if (completed.has(id)) {
+      status = "completed";
+      statusText = "Completed";
+    } else if (id === currentQuestion) {
+      status = "current";
+      statusText = "Current question";
+    }
+
+    const title = String(q.title || id);
+    const displayTitle = title.length > 24
+      ? title.substring(0, 21) + "..."
+      : title;
+
+    nodes += `
+      <g>
+        <rect
+          class="pathway-node ${status}"
+          x="${pos.x}"
+          y="${pos.y}"
+          width="${nodeWidth}"
+          height="${nodeHeight}"
+          rx="9"
+        />
+
+        <text
+          class="pathway-node-text"
+          x="${pos.x + nodeWidth / 2}"
+          y="${pos.y + 27}"
+        >${escapeHtml(displayTitle)}</text>
+
+        <text
+          class="pathway-status-text"
+          x="${pos.x + nodeWidth / 2}"
+          y="${pos.y + 49}"
+        >${escapeHtml(id)} · ${statusText}</text>
+      </g>
+    `;
+  });
+
+  container.innerHTML = `
+    <svg
+      class="pathway-svg"
+      width="${svgWidth}"
+      height="${svgHeight}"
+      viewBox="0 0 ${svgWidth} ${svgHeight}"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Student question pathway"
+    >
+      <defs>
+        <marker
+          id="pathway-arrow"
+          markerWidth="8"
+          markerHeight="8"
+          refX="6"
+          refY="3"
+          orient="auto"
+        >
+          <path d="M0,0 L0,6 L7,3 z" fill="#9ca3af"/>
+        </marker>
+      </defs>
+
+      ${edges}
+      ${nodes}
+    </svg>
+
+    <div class="pathway-legend">
+      <div class="pathway-legend-item">
+        <span class="pathway-legend-colour completed"></span>
+        Completed
+      </div>
+
+      <div class="pathway-legend-item">
+        <span class="pathway-legend-colour current"></span>
+        Current question
+      </div>
+
+      <div class="pathway-legend-item">
+        <span class="pathway-legend-colour incomplete"></span>
+        Not completed
+      </div>
+    </div>
+  `;
+}
+
 
 async function advanceStudent(studentId, nextQuestionId) {
   try {

@@ -592,7 +592,7 @@ function renderTeacherDetail(data) {
   
   // Draw the student's question pathway.
   renderQuestionPathway(data);
-  }
+  
 }
 
 

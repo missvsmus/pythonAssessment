@@ -120,11 +120,19 @@
           <h3>Assessment History</h3>
           <div id="detail-history"></div>
           
-          <h3>Question Pathway</h3>
-          <p class="muted">
-            All possible questions and connections. Green indicates completed questions.
-          </p>
-          <div id="detail-pathway" class="pathway-container"></div>
+          <div class="pathway-controls">
+            <button id="load-pathway-btn" class="secondary">
+              Show Question Pathway
+            </button>
+          </div>
+          
+          <div id="pathway-section" class="hidden">
+            <h3>Question Pathway</h3>
+            <p class="muted">
+              All possible questions and connections. Green indicates completed questions.
+            </p>
+            <div id="detail-pathway" class="pathway-container"></div>
+          </div>
         </div>
       </section>
     </main>

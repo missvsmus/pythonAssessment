@@ -589,9 +589,11 @@ function renderTeacherDetail(data) {
       — ${escapeHtml(item.teacherDecision || "Waiting for teacher decision")}
     </div>
   `).join("");
-  
-  // Draw the student's question pathway.
-  renderQuestionPathway(data);
+
+  // Reset the pathway whenever a different student is opened.
+  $("pathway-section").classList.add("hidden");
+  $("detail-pathway").replaceChildren();
+  $("load-pathway-btn").textContent = "Show Question Pathway";
   
 }
 
@@ -852,6 +854,24 @@ function renderQuestionPathway(data) {
   `;
 }
 
+$("load-pathway-btn").addEventListener("click", () => {
+  const section = $("pathway-section");
+  const button = $("load-pathway-btn");
+
+  // Hide the pathway if it is already visible.
+  if (!section.classList.contains("hidden")) {
+    section.classList.add("hidden");
+    button.textContent = "Show Question Pathway";
+    return;
+  }
+
+  // Generate the diagram only when requested.
+  if (state.selectedStudent) {
+    renderQuestionPathway(state.selectedStudent);
+    section.classList.remove("hidden");
+    button.textContent = "Hide Question Pathway";
+  }
+});
 
 async function advanceStudent(studentId, nextQuestionId) {
   try {

@@ -318,3 +318,100 @@ th { color: var(--muted); font-size: .85rem; }
   color: #285b3c;
   line-height: 1.6;
 }
+
+
+/* Student question pathway flowchart */
+
+.pathway-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-top: 15px;
+  padding: 15px 0;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+}
+
+.pathway-svg {
+  display: block;
+  max-width: none;
+  height: auto;
+}
+
+.pathway-edge {
+  fill: none;
+  stroke: #9ca3af;
+  stroke-width: 2;
+}
+
+.pathway-node {
+  stroke-width: 2;
+}
+
+.pathway-node.completed {
+  fill: #dcfce7;
+  stroke: #16a34a;
+}
+
+.pathway-node.current {
+  fill: #fef3c7;
+  stroke: #d97706;
+}
+
+.pathway-node.incomplete {
+  fill: #f3f4f6;
+  stroke: #9ca3af;
+}
+
+.pathway-node-text {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  fill: #1f2937;
+  text-anchor: middle;
+}
+
+.pathway-status-text {
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  fill: #4b5563;
+  text-anchor: middle;
+}
+
+.pathway-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.pathway-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pathway-legend-colour {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 1px solid #888;
+}
+
+.pathway-legend-colour.completed {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+
+.pathway-legend-colour.current {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+
+.pathway-legend-colour.incomplete {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+

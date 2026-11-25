@@ -854,7 +854,7 @@ function renderQuestionPathway(data) {
   `;
 }
 
-$("load-pathway-btn").addEventListener("click", () => {
+/*$("load-pathway-btn").addEventListener("click", () => {
   const section = $("pathway-section");
   const button = $("load-pathway-btn");
 
@@ -871,7 +871,7 @@ $("load-pathway-btn").addEventListener("click", () => {
     section.classList.remove("hidden");
     button.textContent = "Hide Question Pathway";
   }
-});
+});*/
 
 async function advanceStudent(studentId, nextQuestionId) {
   try {

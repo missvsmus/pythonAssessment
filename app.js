@@ -137,51 +137,6 @@ document.addEventListener("keydown", e => {
 
 }
 
-// Reset all students and archive submissions
-$("reset-all-btn").addEventListener("click", async () => {
-  alert("Reset button clicked!");
-  const confirmed = window.confirm(
-    "Are you sure you want to reset ALL students?\n\n" +
-    "This will:\n" +
-    "- Generate new access codes for everyone\n" +
-    "- Return everyone to the first question\n" +
-    "- Log out all currently active students\n" +
-    "- Archive the current submissions\n" +
-    "- Create a fresh submissions sheet\n\n" +
-    "This action cannot be easily undone."
-  );
-
-  if (!confirmed) return;
-
-  const button = $("reset-all-btn");
-  button.disabled = true;
-  button.textContent = "Resetting students...";
-
-  $("add-message").className = "message";
-
-  try {
-    const result = await apiRequest({
-      action: "resetAllStudents",
-      teacherToken: teacherToken
-    });
-
-    showMessage(
-      "add-message",
-      `Successfully reset ${result.resetCount} students. Previous submissions were archived in "${result.archivedSheet}". You can now print the new access cards.`,
-      "success"
-    );
-
-    $("student-result").style.display = "none";
-
-  } catch (error) {
-    showMessage("add-message", error.message, "error");
-
-  } finally {
-    button.disabled = false;
-    button.textContent = "Reset All Students";
-  }
-});
-
 $("logout-btn").addEventListener("click", () => {
   if (studentPollTimer) clearTimeout(studentPollTimer);
   studentPollTimer = null;

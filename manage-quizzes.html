@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Quizzes | CS 11 Assessment</title>
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f9; --surface: #fff; --text: #172033; --muted: #667085;
+      --border: #dce2ea; --primary: #3157c8; --primary-dark: #2445a8;
+      --danger: #b42318; --success: #067647; --warning-bg: #fff7e6;
+      --warning-border: #f2cf83; --shadow: 0 2px 8px rgba(16,24,40,.06);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    header { background: #172b4d; color: white; padding: 18px 24px; }
+    .header-inner, main { max-width: 1120px; margin: 0 auto; }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    h1 { font-size: 1.25rem; margin: 0; }
+    .header-subtitle { color:#d6deed; font-size:.9rem; margin-top:2px; }
+    main { padding: 26px 20px 50px; }
+    .top-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px;
+      padding:22px; margin-bottom:18px; box-shadow:var(--shadow); }
+    .card h2 { font-size:1.08rem; margin:0 0 14px; }
+    .muted { color:var(--muted); }
+    .small { font-size:.88rem; }
+    .row { display:flex; align-items:end; gap:14px; flex-wrap:wrap; }
+    .field { display:flex; flex-direction:column; gap:6px; min-width:180px; flex:1; }
+    label { font-weight:600; font-size:.9rem; }
+    input, select, textarea { width:100%; border:1px solid #c8d0dc; border-radius:7px;
+      padding:10px 11px; color:var(--text); background:white; font:inherit; }
+    textarea { min-height:115px; resize:vertical; }
+    input:focus, select:focus, textarea:focus { outline:3px solid rgba(49,87,200,.14); border-color:var(--primary); }
+    button { border:0; border-radius:7px; padding:10px 15px; font:inherit; font-weight:650;
+      cursor:pointer; background:var(--primary); color:white; }
+    button:hover { background:var(--primary-dark); }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    button.secondary { background:#eef2f8; color:#26364f; border:1px solid var(--border); }
+    button.secondary:hover { background:#e2e8f2; }
+    button.danger { background:#fff1f0; color:var(--danger); border:1px solid #f3c4c0; }
+    button.danger:hover { background:#ffe3e0; }
+    .status { padding:11px 13px; border-radius:8px; margin:0 0 16px; display:none; }
+    .status.show { display:block; }
+    .status.error { background:#fff1f0; color:#912018; border:1px solid #f2c4c0; }
+    .status.success { background:#ecfdf3; color:#05603a; border:1px solid #a6f4c5; }
+    .status.info { background:#eff6ff; color:#1849a9; border:1px solid #bfdbfe; }
+    .warning { background:var(--warning-bg); border:1px solid var(--warning-border);
+      border-radius:8px; padding:12px 14px; margin-top:14px; }
+    .quiz-summary { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:12px; }
+    .pill { display:inline-block; padding:3px 9px; border-radius:999px; font-size:.8rem;
+      font-weight:700; background:#edf2ff; color:#344da5; }
+    .pill.disabled { background:#f2f4f7; color:#667085; }
+    .question-list { display:grid; gap:10px; }
+    .question { border:1px solid var(--border); border-radius:9px; padding:14px 15px;
+      display:flex; justify-content:space-between; gap:18px; align-items:flex-start; }
+    .question h3 { font-size:1rem; margin:0 0 4px; }
+    .question p { margin:0; color:var(--muted); font-size:.9rem; white-space:pre-wrap; }
+    .question-meta { display:flex; align-items:center; gap:7px; margin-bottom:7px; flex-wrap:wrap; }
+    .question-actions { display:flex; gap:7px; flex-wrap:wrap; flex-shrink:0; }
+    .question-actions button { padding:7px 10px; font-size:.85rem; }
+    .empty { text-align:center; padding:28px; color:var(--muted); border:1px dashed var(--border); border-radius:9px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .full { grid-column:1/-1; }
+    .form-actions { display:flex; gap:9px; margin-top:16px; flex-wrap:wrap; }
+    .hidden { display:none !important; }
+    .login-wrap { max-width:440px; margin:60px auto; }
+    .login-wrap .card { padding:26px; }
+    @media (max-width:700px) {
+      .header-inner { align-items:flex-start; flex-direction:column; }
+      .question { flex-direction:column; }
+      .question-actions { width:100%; }
+      .form-grid { grid-template-columns:1fr; }
+      .full { grid-column:auto; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Quiz Management</h1>
+        <div class="header-subtitle">CS 11 Coding Assessment</div>
+      </div>
+      <div class="top-actions">
+        <button class="secondary" id="back-btn" type="button">Back to assessment</button>
+        <button class="secondary" id="logout-btn" type="button">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="status-message" class="status" role="status" aria-live="polite"></div>
+
+    <section id="login-panel" class="login-wrap hidden">
+      <div class="card">
+        <h2>Teacher login required</h2>
+        <p class="muted">Enter your teacher access code to manage the question banks.</p>
+        <form id="login-form">
+          <div class="field">
+            <label for="teacher-code">Teacher access code</label>
+            <input id="teacher-code" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="form-actions"><button type="submit">Log in</button></div>
+        </form>
+      </div>
+    </section>
+
+    <div id="manager-panel" class="hidden">
+      <section class="card">
+        <h2>Active question bank</h2>
+        <p class="muted">The selected bank is used by every student. Switching banks changes the questions available to the whole class.</p>
+        <div class="row">
+          <div class="field" style="max-width:260px">
+            <label for="quiz-select">Question bank</label>
+            <select id="quiz-select">
+              <option value="Q1">Quiz 1</option>
+              <option value="Q2">Quiz 2</option>
+              <option value="Q3">Quiz 3</option>
+            </select>
+          </div>
+          <button id="switch-quiz-btn" type="button">Switch active quiz</button>
+          <button id="refresh-btn" class="secondary" type="button">Refresh</button>
+        </div>
+        <div class="quiz-summary">
+          <span>Currently active: <strong id="active-quiz-label">Loading…</strong></span>
+          <span id="question-count" class="pill">— questions</span>
+        </div>
+        <div class="warning">
+          <strong>Before switching:</strong> No students can be actively working or waiting for teacher feedback.
+          The server will block the switch if any student has either status. Students who have completed the assessment
+          or have not started are safe.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div>
+            <h2 style="margin-bottom:3px">Questions in this bank</h2>
+            <p class="muted small" style="margin:0">Edit question details or disable questions you no longer want students to receive.</p>
+          </div>
+          <button id="add-question-btn" type="button">＋ Add question</button>
+        </div>
+        <div id="question-list" class="question-list" style="margin-top:18px">
+          <div class="empty">Loading questions…</div>
+        </div>
+      </section>
+
+      <section id="editor-card" class="card hidden">
+        <h2 id="editor-title">Add question</h2>
+        <form id="question-form">
+          <input type="hidden" id="original-id">
+          <div class="form-grid">
+            <div class="field">
+              <label for="question-id">Question ID</label>
+              <input id="question-id" maxlength="40" placeholder="e.g. Q1A" required>
+              <span class="muted small">Must be unique within this question bank.</span>
+            </div>
+            <div class="field">
+              <label for="question-type">Question type</label>
+              <select id="question-type">
+                <option value="code">Python code</option>
+                <option value="written">Written response</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="question-title">Title</label>
+              <input id="question-title" required>
+            </div>
+            <div class="field full">
+              <label for="question-text">Question instructions</label>
+              <textarea id="question-text" required></textarea>
+            </div>
+            <div class="field full" id="starter-code-field">
+              <label for="starter-code">Starter code</label>
+              <textarea id="starter-code" placeholder="# Optional Python starter code"></textarea>
+            </div>
+            <div class="field full hidden" id="starter-text-field">
+              <label for="starter-text">Starter text / response scaffold</label>
+              <textarea id="starter-text" placeholder="Optional starter text shown to students"></textarea>
+            </div>
+            <div class="field full">
+              <label for="next-options">Next question options</label>
+              <input id="next-options" placeholder="e.g. Q1B, Q1C">
+              <span class="muted small">Comma-separated question IDs. Leave blank if there are no next-question options.</span>
+            </div>
+            <div class="field">
+              <label for="question-enabled">Availability</label>
+              <select id="question-enabled">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="save-question-btn">Save question</button>
+            <button type="button" class="secondary" id="cancel-edit-btn">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API = (typeof API_URL !== "undefined") ? API_URL : "";
+    const $ = id => document.getElementById(id);
+    let teacherToken = localStorage.getItem("assessmentTeacherToken") || "";
+    let activeQuiz = "Q1";
+    let questions = [];
+
+    function showStatus(message, type = "info") {
+      const el = $("status-message");
+      el.textContent = message;
+      el.className = `status show ${type}`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function clearStatus() {
+      $("status-message").className = "status";
+      $("status-message").textContent = "";
+    }
+    async function api(action, data = {}) {
+      if (!API) throw new Error("API_URL was not found. Check that config.js is loaded and contains your Apps Script URL.");
+      const response = await fetch(API, {
+        method: "POST",
+        body: JSON.stringify({ action, ...data })
+      });
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.error || "The request could not be completed.");
+      return result;
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      })[c]);
+    }
+    function showManager() {
+      $("login-panel").classList.add("hidden");
+      $("manager-panel").classList.remove("hidden");
+    }
+    function showLogin() {
+      $("manager-panel").classList.add("hidden");
+      $("login-panel").classList.remove("hidden");
+    }
+    async function loadManagerData() {
+      clearStatus();
+      $("question-list").innerHTML = '<div class="empty">Loading questions…</div>';
+      try {
+        // Backend action to be added to Code.gs:
+        // returns { ok:true, activeQuiz:"Q1", questions:[{id,type,title,text,starterCode,starterText,enabled,nextOptions}] }
+        const result = await api("quizManagerData", { teacherToken });
+        activeQuiz = result.activeQuiz || "Q1";
+        questions = result.questions || [];
+        $("quiz-select").value = activeQuiz;
+        $("active-quiz-label").textContent = activeQuiz;
+        $("question-count").textContent = `${questions.length} question${questions.length === 1 ? "" : "s"}`;
+        renderQuestions();
+      } catch (err) {
+        $("question-list").innerHTML = '<div class="empty">Could not load questions.</div>';
+        showStatus(err.message, "error");
+        if (/teacher session expired|teacher authorization/i.test(err.message)) {
+          localStorage.removeItem("assessmentTeacherToken");
+          teacherToken = "";
+          showLogin();
+        }
+      }
+    }
+    function renderQuestions() {
+      if (!questions.length) {
+        $("question-list").innerHTML = '<div class="empty">There are no questions in this bank yet. Use “Add question” to create the first one.</div>';
+        return;
+      }
+      $("question-list").innerHTML = questions.map(q => {
+        const enabled = String(q.enabled).toLowerCase() !== "false";
+        const type = String(q.type || "code").toLowerCase() === "written" ? "Written" : "Python";
+        return `<article class="question">
+          <div style="min-width:0;flex:1">
+            <div class="question-meta">
+              <span class="pill">${escapeHtml(q.id)}</span>
+              <span class="pill">${type}</span>
+              <span class="pill ${enabled ? "" : "disabled"}">${enabled ? "Enabled" : "Disabled"}</span>
+            </div>
+            <h3>${escapeHtml(q.title || "(Untitled question)")}</h3>
+            <p>${escapeHtml(q.text || "")}</p>
+            ${q.nextOptions ? `<p class="small" style="margin-top:7px">Next: ${escapeHtml(q.nextOptions)}</p>` : ""}
+          </div>
+          <div class="question-actions">
+            <button class="secondary" type="button" data-edit="${escapeHtml(q.id)}">Edit</button>
+            <button class="${enabled ? "danger" : "secondary"}" type="button"
+              data-toggle="${escapeHtml(q.id)}" data-enabled="${enabled}">
+              ${enabled ? "Disable" : "Enable"}
+            </button>
+          </div>
+        </article>`;
+      }).join("");
+      $("question-list").querySelectorAll("[data-edit]").forEach(btn =>
+        btn.addEventListener("click", () => editQuestion(btn.dataset.edit)));
+      $("question-list").querySelectorAll("[data-toggle]").forEach(btn =>
+        btn.addEventListener("click", () => toggleQuestion(btn.dataset.toggle, btn.dataset.enabled === "true")));
+    }
+    function resetEditor() {
+      $("question-form").reset();
+      $("original-id").value = "";
+      $("editor-title").textContent = "Add question";
+      $("question-id").disabled = false;
+      $("editor-card").classList.add("hidden");
+      updateStarterFields();
+    }
+    function updateStarterFields() {
+      const written = $("question-type").value === "written";
+      $("starter-code-field").classList.toggle("hidden", written);
+      $("starter-text-field").classList.toggle("hidden", !written);
+    }
+    function editQuestion(id) {
+      const q = questions.find(item => String(item.id) === String(id));
+      if (!q) return;
+      $("editor-title").textContent = `Edit question ${q.id}`;
+      $("original-id").value = q.id;
+      $("question-id").value = q.id;
+      $("question-id").disabled = true;
+      $("question-type").value = String(q.type || "code").toLowerCase() === "written" ? "written" : "code";
+      $("question-title").value = q.title || "";
+      $("question-text").value = q.text || "";
+      $("starter-code").value = q.starterCode || "";
+      $("starter-text").value = q.starterText || "";
+      $("next-options").value = q.nextOptions || "";
+      $("question-enabled").value = String(q.enabled).toLowerCase() === "false" ? "false" : "true";
+      updateStarterFields();
+      $("editor-card").classList.remove("hidden");
+      $("editor-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    async function toggleQuestion(id, currentlyEnabled) {
+      const action = currentlyEnabled ? "disable" : "enable";
+      if (!confirm(`${action[0].toUpperCase() + action.slice(1)} question ${id}?`)) return;
+      try {
+        await api("setQuestionEnabled", { teacherToken, quizId: activeQuiz, questionId: id, enabled: !currentlyEnabled });
+        showStatus(`Question ${id} ${action}d.`, "success");
+        await loadManagerData();
+      } catch (err) { showStatus(err.message, "error"); }
+    }
+
+    $("login-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      try {
+        const result = await api("login", { code: $("teacher-code").value.trim() });
+        if (result.role !== "teacher" || !result.teacherToken) throw new Error("That code does not have teacher access.");
+        teacherToken = result.teacherToken;
+        localStorage.setItem("assessmentTeacherToken", teacherToken);
+        showManager();
+        await loadManagerData();
+      } catch (err) { showStatus(err.message, "error"); }
+    });
+    $("switch-quiz-btn").addEventListener("click", async () => {
+      const selected = $("quiz-select").value;
+      if (selected === activeQuiz) return showStatus(`${activeQuiz} is already the active question bank.`, "info");
+      const confirmed = confirm(`Switch the active question bank for EVERY student from ${activeQuiz} to ${selected}?\n\nThis should only be done when no students are working or waiting for feedback. The server will block the switch if anyone is in either state.`);
+      if (!confirmed) return;
+      $("switch-quiz-btn").disabled = true;
+      try {
+        // Backend action must check student statuses and update Settings.activeQuiz atomically.
+        await api("switchActiveQuiz", { teacherToken, quizId: selected });
+        showStatus(`The active question bank is now ${selected}.`, "success");
+        resetEditor();
+        await loadManagerData();
+      } catch (err) {
+        showStatus(err.message, "error");
+        $("quiz-select").value = activeQuiz;
+      } finally { $("switch-quiz-btn").disabled = false; }
+    });
+    $("refresh-btn").addEventListener("click", loadManagerData);
+    $("add-question-btn").addEventListener("click", () => {
+      resetEditor();
+      $("editor-card").classList.remove("hidden");
+      $("editor-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    $("cancel-edit-btn").addEventListener("click", resetEditor);
+    $("question-type").addEventListener("change", updateStarterFields);
+    $("question-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const question = {
+        id: $("question-id").value.trim(),
+        type: $("question-type").value,
+        title: $("question-title").value.trim(),
+        text: $("question-text").value.trim(),
+        starterCode: $("starter-code").value,
+        starterText: $("starter-text").value,
+        nextOptions: $("next-options").value.trim(),
+        enabled: $("question-enabled").value === "true"
+      };
+      if (!question.id || !question.title || !question.text) return showStatus("Please complete the question ID, title, and instructions.", "error");
+      const originalId = $("original-id").value;
+      try {
+        // Backend action validates IDs and nextOptions, then creates or updates the row.
+        await api("saveQuestion", { teacherToken, quizId: activeQuiz, question, originalId });
+        showStatus(`Question ${question.id} saved.`, "success");
+        resetEditor();
+        await loadManagerData();
+      } catch (err) { showStatus(err.message, "error"); }
+    });
+    $("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("assessmentTeacherToken");
+      teacherToken = "";
+      showLogin();
+      showStatus("You have been logged out.", "info");
+    });
+    $("back-btn").addEventListener("click", () => { window.location.href = "index.html"; });
+
+    if (teacherToken) {
+      showManager();
+      loadManagerData();
+    } else {
+      showLogin();
+    }
+  </script>
+</body>
+</html>

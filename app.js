@@ -591,10 +591,10 @@ function renderTeacherDetail(data) {
   `).join("");
 
   // Reset the pathway whenever a different student is opened.
-  $("pathway-section").classList.add("hidden");
+  /*$("pathway-section").classList.add("hidden");
   $("detail-pathway").replaceChildren();
   $("load-pathway-btn").textContent = "Show Question Pathway";
-  
+  */
 }
 
 

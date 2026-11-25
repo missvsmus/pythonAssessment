@@ -138,7 +138,7 @@ document.addEventListener("keydown", e => {
 }
 
 // Reset all students and archive submissions
-$("reset-all-btn").addEventListener("click", () => {
+$("reset-all-btn").addEventListener("click", async () => {
   alert("Reset button clicked!");
   const confirmed = window.confirm(
     "Are you sure you want to reset ALL students?\n\n" +

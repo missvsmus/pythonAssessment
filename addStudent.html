@@ -203,6 +203,9 @@
 
       <div class="top-bar">
         <h1>Add Students</h1>
+        <button type="button" onclick="window.location.href='teacher-dashboard.html'">
+          Back to Dashboard
+        </button>
         <button type="button" id="logout-btn">
           Log Out
         </button>
@@ -342,6 +345,7 @@
         }
 
         teacherToken = result.teacherToken;
+        localStorage.setItem("assessmentTeacherToken", teacherToken);
 
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
@@ -423,17 +427,37 @@
       }
     });
 
+    // Restore the teacher session from the main dashboard.
+    (async function restoreTeacherSession() {
+      const savedToken = localStorage.getItem("assessmentTeacherToken");
+    
+      if (!savedToken) return;
+    
+      teacherToken = savedToken;
+    
+      try {
+        // Verify that the saved token is still valid.
+        await apiRequest({
+          action: "listStudents",
+          teacherToken: teacherToken
+        });
+    
+        $("login-screen").classList.add("hidden");
+        $("admin-screen").classList.remove("hidden");
+    
+      } catch (error) {
+        localStorage.removeItem("assessmentTeacherToken");
+        teacherToken = null;
+        showMessage("login-message", "Your teacher session has expired. Please log in again.", "error");
+      }
+    })();
 
     // Log out
     $("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("assessmentTeacherToken");
       teacherToken = null;
-
-      $("admin-screen").classList.add("hidden");
-      $("login-screen").classList.remove("hidden");
-
-      $("teacher-code").value = "";
-      $("login-message").className = "message";
-      $("student-result").style.display = "none";
+    
+      window.location.href = "teacher-login.html";
     });
 
     

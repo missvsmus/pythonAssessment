@@ -11,85 +11,257 @@
   <link rel="icon" href="./favicon.ico" sizes="any">
 
   <style>
-    :root {
-      --bg:#f4f6f9; --surface:#fff; --text:#172033; --muted:#667085;
-      --border:#dce2ea; --primary:#3157c8; --primary-dark:#2445a8;
-      --danger:#b42318; --success:#067647; --shadow:0 2px 8px rgba(16,24,40,.06);
+    .admin-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
     }
-    * { box-sizing:border-box; }
-    body { margin:0; background:var(--bg); color:var(--text);
-      font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    header { background:#172b4d; color:#fff; padding:18px 24px; }
-    .header-inner, main { max-width:1120px; margin:0 auto; }
-    .header-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-    header h1 { font-size:1.25rem; margin:0; }
-    .header-subtitle { color:#d6deed; font-size:.9rem; margin-top:2px; }
-    .top-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    main { padding:30px 20px 50px; }
-    .admin-container { max-width:760px; }
-    .admin-card { background:var(--surface); border:1px solid var(--border); border-radius:12px;
-      padding:26px; margin-bottom:18px; box-shadow:var(--shadow); }
-    .admin-card h1 { margin:0 0 10px; font-size:1.35rem; }
-    .admin-card h2 { font-size:1.08rem; margin:0 0 10px; }
-    .admin-card p { color:var(--muted); }
-    label { display:block; font-weight:600; font-size:.9rem; margin-bottom:6px; }
-    input { width:100%; border:1px solid #c8d0dc; border-radius:7px; padding:11px 12px;
-      margin:0 0 18px; color:var(--text); background:#fff; font:inherit; }
-    input:focus { outline:3px solid rgba(49,87,200,.14); border-color:var(--primary); }
-    button { border:0; border-radius:7px; padding:10px 15px; font:inherit; font-weight:650;
-      cursor:pointer; background:var(--primary); color:#fff; }
-    button:hover { background:var(--primary-dark); }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    button.secondary { background:#eef2f8; color:#26364f; border:1px solid var(--border); }
-    button.secondary:hover { background:#e2e8f2; }
-    .message { display:none; margin-top:15px; padding:12px; border-radius:8px; }
-    .message.error { display:block; background:#fff1f0; color:#912018; border:1px solid #f2c4c0; }
-    .message.success { display:block; background:#ecfdf3; color:#05603a; border:1px solid #a6f4c5; }
-    .student-result { display:none; margin-top:20px; padding:20px; background:#ecfdf3;
-      border:1px solid #a6f4c5; border-radius:8px; }
-    .access-code { font-size:28px; font-weight:750; letter-spacing:4px; margin:10px 0; }
-    .result-row { margin:10px 0; }
-    .hidden { display:none !important; }
-    .section-divider { margin-top:26px; border-top:1px solid var(--border); padding-top:20px; }
-    .section-divider p { margin-top:6px; }
-    #reset-all-btn { background:#b42318 !important; color:#fff; }
-    #reset-all-btn:hover { background:#912018 !important; }
-    #print-area { display:none !important; }
-    @media(max-width:700px) {
-      .header-inner { align-items:flex-start; flex-direction:column; }
-      main { padding:22px 16px 40px; }
-      .admin-card { padding:20px; }
+
+    .admin-card {
+      background: var(--card-bg, white);
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border, #ddd);
     }
+
+    .admin-card h1 {
+      margin-top: 0;
+    }
+
+    .admin-card input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 8px 0 18px;
+      font-size: 16px;
+    }
+
+    .admin-card button {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    .admin-card button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .error {
+      display: block;
+      background: #fde8e8;
+      color: #9b1c1c;
+    }
+
+    .success {
+      display: block;
+      background: #e5f6eb;
+      color: #176b3a;
+    }
+
+    .student-result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #e5f6eb;
+      border: 1px solid #72c995;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .access-code {
+      font-size: 28px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      margin: 10px 0;
+    }
+
+    .result-row {
+      margin: 10px 0;
+    }
+
+    .student-list-section {
+      margin-top: 28px;
+      border-top: 1px solid #ddd;
+      padding-top: 22px;
+    }
+
+    .student-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .student-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--border, #ddd);
+      border-radius: 8px;
+      background: var(--card-bg, #fff);
+    }
+
+    .student-row-main {
+      min-width: 0;
+    }
+
+    .student-row-name {
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .student-row-meta {
+      margin-top: 4px;
+      color: #667085;
+      font-size: 13px;
+    }
+
+    .remove-student-btn {
+      flex: 0 0 auto;
+      background: #fff;
+      color: #a12626;
+      border: 1px solid #d7a0a0;
+      border-radius: 6px;
+      padding: 8px 12px !important;
+    }
+
+    .remove-student-btn:hover {
+      background: #fff1f1;
+    }
+
+    .list-empty, .list-loading {
+      color: #667085;
+      padding: 12px 0;
+    }
+
+    @media (max-width: 520px) {
+      .student-row {
+        align-items: flex-start;
+      }
+      .remove-student-btn {
+        padding: 7px 9px !important;
+      }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .page-header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 24px 0;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    .page-header button {
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+
+    .page-header.hidden {
+      display: none !important;
+    }
+
+    .admin-card h1 {
+      margin-top: 0;
+    }
+    
+    /* Student access card printing */
+    #print-area {
+      display: none !important;
+    }
+    
     @media print {
-      @page { size:letter portrait; margin:.35in; }
-      body * { visibility:hidden !important; }
-      #print-area, #print-area * { visibility:visible !important; }
-      #print-area { display:grid !important; position:absolute; top:0; left:0; width:100%;
-        grid-template-columns:repeat(2,1fr); grid-auto-rows:2.35in; gap:.15in; box-sizing:border-box; }
-      .access-card { display:flex; flex-direction:column; justify-content:center; align-items:center;
-        text-align:center; border:1.5px dashed #555; padding:.15in; box-sizing:border-box;
-        height:2.35in; break-inside:avoid; page-break-inside:avoid; color:#000; font-family:Arial,sans-serif; }
-      .access-card h2 { font-size:15pt; margin:0 0 12pt; }
-      .access-card .card-label { font-size:9pt; margin-bottom:5pt; }
-      .access-card .card-code { font-size:27pt; font-weight:bold; letter-spacing:4pt; margin:5pt 0 12pt; }
-      .access-card .card-instructions { font-size:9pt; margin:0; }
+      @page {
+        size: letter portrait;
+        margin: 0.35in;
+      }
+    
+      body * {
+        visibility: hidden !important;
+      }
+    
+      #print-area,
+      #print-area * {
+        visibility: visible !important;
+      }
+    
+      #print-area {
+        display: grid !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 2.35in;
+        gap: 0.15in;
+        box-sizing: border-box;
+      }
+    
+      .access-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        border: 1.5px dashed #555;
+        padding: 0.15in;
+        box-sizing: border-box;
+        height: 2.35in;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        color: #000;
+        font-family: Arial, sans-serif;
+      }
+    
+      .access-card h2 {
+        font-size: 15pt;
+        margin: 0 0 12pt;
+      }
+    
+      .access-card .card-label {
+        font-size: 9pt;
+        margin-bottom: 5pt;
+      }
+    
+      .access-card .card-code {
+        font-size: 27pt;
+        font-weight: bold;
+        letter-spacing: 4pt;
+        margin: 5pt 0 12pt;
+      }
+    
+      .access-card .card-instructions {
+        font-size: 9pt;
+        margin: 0;
+      }
     }
+
+
   </style>
 </head>
 
 <body>
 
-  <header>
-    <div class="header-inner">
-      <div>
-        <h1>Student Management</h1>
-        <div class="header-subtitle">CS 11 Coding Assessment</div>
-      </div>
-      <div class="top-actions">
-        <button class="secondary" id="back-btn" type="button" onclick="window.location.href='teacher-dashboard.html'">Back to Dashboard</button>
-        <button class="secondary" id="logout-btn" type="button">Log out</button>
-      </div>
-    </div>
+  <header id="page-header" class="page-header hidden">
+    <button type="button" onclick="window.location.href='teacher-dashboard.html'">
+      Back to Dashboard
+    </button>
+    <button type="button" id="logout-btn">
+      Log Out
+    </button>
   </header>
 
   <main class="admin-container">
@@ -144,6 +316,13 @@
 
       <div id="add-message" class="message"></div>
 
+      <div class="student-list-section">
+        <h2>Students in This Class</h2>
+        <p>Names and access codes for students registered in this class.</p>
+        <div id="student-list-message" class="list-loading">Loading students...</div>
+        <div id="student-list" class="student-list"></div>
+      </div>
+
       <div id="student-result" class="student-result">
         <h2>Student Added!</h2>
 
@@ -157,17 +336,12 @@
           <div id="result-code" class="access-code"></div>
         </div>
 
-        <div class="result-row">
-          <strong>Starting question:</strong>
-          <span id="result-question"></span>
-        </div>
-
         <button type="button" id="copy-code-btn">
           Copy Access Code
         </button>
       </div>
       
-      <div class="section-divider">
+      <div style="margin-top: 25px; border-top: 1px solid #ddd; padding-top: 20px;">
         <h2>Student Access Cards</h2>
         <p>Print a set of individual access cards for your class.</p>
       
@@ -175,7 +349,7 @@
           Print All Student Cards
         </button>
       </div>
-      <div class="section-divider">
+      <div style="margin-top: 30px; border-top: 2px solid #ddd; padding-top: 20px;">
         <h2>Reset All Students</h2>
       
         <p>
@@ -260,7 +434,9 @@
 
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
+        $("page-header").classList.remove("hidden");
 
+        await loadStudentList();
         $("student-name").focus();
 
       } catch (error) {
@@ -301,11 +477,11 @@
 
         $("result-name").textContent = student.name;
         $("result-code").textContent = student.accessCode;
-        $("result-question").textContent = student.currentQuestion;
 
         $("student-result").style.display = "block";
 
         $("student-name").value = "";
+        await loadStudentList();
         $("student-name").focus();
 
       } catch (error) {
@@ -317,6 +493,94 @@
       }
     });
 
+
+    // Load and display the current class roster.
+    async function loadStudentList() {
+      const message = $("student-list-message");
+      const list = $("student-list");
+      message.textContent = "Loading students...";
+      message.className = "list-loading";
+      list.replaceChildren();
+
+      try {
+        const result = await apiRequest({
+          action: "listStudents",
+          teacherToken: teacherToken
+        });
+
+        const students = result.students || [];
+        message.textContent = students.length
+          ? `${students.length} student${students.length === 1 ? "" : "s"} registered`
+          : "No students have been added yet.";
+        message.className = students.length ? "student-row-meta" : "list-empty";
+
+        students.forEach(student => {
+          const row = document.createElement("div");
+          row.className = "student-row";
+
+          const main = document.createElement("div");
+          main.className = "student-row-main";
+
+          const name = document.createElement("div");
+          name.className = "student-row-name";
+          name.textContent = student.name;
+
+          const accessCode = document.createElement("div");
+          accessCode.className = "student-row-meta";
+          accessCode.textContent = `Access code: ${student.accessCode}`;
+
+          main.append(name, accessCode);
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "remove-student-btn";
+          removeButton.textContent = "Remove";
+          removeButton.dataset.studentId = student.studentId;
+          removeButton.addEventListener("click", () => removeStudent(student));
+
+          row.append(main, removeButton);
+          list.appendChild(row);
+        });
+      } catch (error) {
+        message.textContent = error.message;
+        message.className = "message error";
+      }
+    }
+
+    async function removeStudent(student) {
+      const confirmed = window.confirm(
+        `Remove ${student.name} from this class?\n\n` +
+        "They will no longer be able to log in with their access code. " +
+        "Their existing submissions and results will be kept. " +
+        "If they are currently working, their session will be ended."
+      );
+
+      if (!confirmed) return;
+
+      const button = Array.from(document.querySelectorAll(".remove-student-btn"))
+        .find(b => b.dataset.studentId === String(student.studentId));
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Removing...";
+      }
+
+      try {
+        await apiRequest({
+          action: "removeStudent",
+          teacherToken: teacherToken,
+          studentId: student.studentId
+        });
+
+        showMessage("add-message", `${student.name} was removed. Their submissions and results were retained.`, "success");
+        await loadStudentList();
+      } catch (error) {
+        showMessage("add-message", error.message, "error");
+        if (button) {
+          button.disabled = false;
+          button.textContent = "Remove";
+        }
+      }
+    }
 
     // Copy the access code
     $("copy-code-btn").addEventListener("click", async () => {
@@ -355,6 +619,8 @@
     
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
+        $("page-header").classList.remove("hidden");
+        await loadStudentList();
     
       } catch (error) {
         localStorage.removeItem("assessmentTeacherToken");

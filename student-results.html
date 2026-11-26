@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Results | CS 11 Assessment</title>
+  <script src="config.js"></script>
+  <style>
+    :root { --bg:#f4f6f9; --surface:#fff; --text:#172033; --muted:#667085; --border:#dce2ea; --primary:#3157c8; --primary-dark:#2445a8; --danger:#b42318; --shadow:0 2px 8px rgba(16,24,40,.06); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    header { background:#172b4d; color:white; padding:18px 24px; }
+    .header-inner, main { max-width:1120px; margin:0 auto; }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    h1 { font-size:1.25rem; margin:0; } .header-subtitle { color:#d6deed; font-size:.9rem; margin-top:2px; }
+    main { padding:26px 20px 50px; } .top-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px; margin-bottom:18px; box-shadow:var(--shadow); }
+    .card h2 { font-size:1.08rem; margin:0 0 14px; } .muted { color:var(--muted); } .small { font-size:.88rem; }
+    button, select, input { font:inherit; } button { border:0; border-radius:7px; padding:10px 15px; font-weight:650; cursor:pointer; background:var(--primary); color:white; }
+    button:hover { background:var(--primary-dark); } button:disabled { opacity:.55; cursor:not-allowed; }
+    button.secondary { background:#eef2f8; color:#26364f; border:1px solid var(--border); } button.secondary:hover { background:#e2e8f2; }
+    input, select { width:100%; border:1px solid #c8d0dc; border-radius:7px; padding:10px 11px; color:var(--text); background:white; }
+    input:focus, select:focus { outline:3px solid rgba(49,87,200,.14); border-color:var(--primary); }
+    .status { padding:11px 13px; border-radius:8px; margin:0 0 16px; display:none; } .status.show { display:block; }
+    .status.error { background:#fff1f0; color:#912018; border:1px solid #f2c4c0; } .status.success { background:#ecfdf3; color:#05603a; border:1px solid #a6f4c5; } .status.info { background:#eff6ff; color:#1849a9; border:1px solid #bfdbfe; }
+    .hidden { display:none !important; } .login-wrap { max-width:440px; margin:60px auto; } .login-wrap .card { padding:26px; }
+    .toolbar { display:flex; align-items:end; gap:14px; flex-wrap:wrap; } .field { display:flex; flex-direction:column; gap:6px; min-width:180px; flex:1; } label { font-size:.9rem; font-weight:650; }
+    .table-wrap { overflow-x:auto; } table { width:100%; border-collapse:collapse; min-width:620px; } th,td { padding:12px 13px; border-bottom:1px solid var(--border); text-align:left; vertical-align:middle; } th { color:#475467; font-size:.83rem; background:#f8fafc; }
+    tbody tr:hover { background:#f8faff; } .student-link { border:0; background:none; color:var(--primary); padding:0; font-weight:700; text-align:left; cursor:pointer; } .student-link:hover { text-decoration:underline; background:none; }
+    .grade-pill { display:inline-block; border-radius:7px; padding:5px 10px; font-size:.85rem; font-weight:750; border:1px solid rgba(0,0,0,.08); white-space:nowrap; }
+    .grade-NY { background:#7f1d1d; color:#fff; } .grade-E { background:#f4b6b6; color:#651b1b; } .grade-D { background:#fbd3a4; color:#713b08; } .grade-P { background:#c9e8ce; color:#174b27; } .grade-PH { background:#4d965d; color:#fff; } .grade-EX { background:#e4d5f5; color:#49236f; } .grade-EXH { background:#70439a; color:#fff; }
+    .empty { text-align:center; padding:28px; color:var(--muted); border:1px dashed var(--border); border-radius:9px; }
+    .detail-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; } .question-card { border:1px solid var(--border); border-radius:10px; padding:17px; margin-top:13px; }
+    .question-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; } .question-title { font-weight:750; margin:0; } .meta { color:var(--muted); font-size:.85rem; }
+    pre { background:#101828; color:#e6edf7; border-radius:8px; padding:14px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; margin:12px 0; }
+    .submission-text { white-space:pre-wrap; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:13px; margin-top:12px; overflow-wrap:anywhere; }
+    .marking-row { display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin-top:12px; } .marking-row .field { max-width:240px; }
+    .final-grade { display:flex; align-items:end; gap:14px; flex-wrap:wrap; } .final-grade .field { max-width:340px; }
+    .hint { background:#eff6ff; color:#1849a9; border:1px solid #bfdbfe; border-radius:8px; padding:11px 13px; margin-bottom:14px; }
+    @media(max-width:700px) { .header-inner { align-items:flex-start; flex-direction:column; } .card { padding:17px; } }
+  </style>
+</head>
+<body>
+<header><div class="header-inner"><div><h1>Student Results</h1><div class="header-subtitle">CS 11 Coding Assessment</div></div><div class="top-actions"><button class="secondary" id="back-btn" type="button">Back to Dashboard</button><button class="secondary" id="logout-btn" type="button">Log Out</button></div></div></header>
+<main>
+  <div id="status-message" class="status" role="status" aria-live="polite"></div>
+  <section id="login-panel" class="login-wrap hidden"><div class="card"><h2>Teacher login required</h2><p class="muted">Enter your teacher access code to view student results.</p><form id="login-form"><div class="field"><label for="teacher-code">Teacher access code</label><input id="teacher-code" type="password" autocomplete="current-password" required></div><div style="margin-top:16px"><button type="submit">Log in</button></div></form></div></section>
+  <div id="results-panel" class="hidden">
+    <section id="overview-panel" class="card">
+      <h2>Quiz results overview</h2><p class="muted small">Each student appears once for each quiz they have submitted. Select a student to review their questions and assign marks.</p>
+      <div class="toolbar" style="margin:16px 0"><div class="field"><label for="search-input">Search students</label><input id="search-input" type="search" placeholder="Search by student name"></div><div class="field" style="max-width:220px"><label for="quiz-filter">Quiz</label><select id="quiz-filter"><option value="all">All quizzes</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option></select></div><button class="secondary" id="refresh-btn" type="button">Refresh</button></div>
+      <div id="results-table" class="table-wrap"><div class="empty">Loading results…</div></div>
+    </section>
+    <section id="detail-panel" class="card hidden">
+      <div class="detail-heading"><div><h2 id="detail-name" style="margin-bottom:3px">Student</h2><p id="detail-subtitle" class="muted small" style="margin:0">Quiz submissions</p></div><button class="secondary" id="back-results-btn" type="button">← Back to results</button></div>
+      <div id="question-list" style="margin-top:16px"></div>
+      <div class="card" style="margin:18px 0 0;box-shadow:none;background:#fbfcfe">
+        <h2>Final proficiency</h2><p class="muted small">Assign one overall proficiency mark for this student's work on this quiz.</p>
+        <div class="final-grade"><div class="field"><label for="proficiency-select">Proficiency mark</label><select id="proficiency-select"><option value="">Not assigned</option><option value="Not Yet Emerging">Not Yet Emerging</option><option value="Emerging">Emerging</option><option value="Developing">Developing</option><option value="Proficient">Proficient</option><option value="Proficient High">Proficient High</option><option value="Extending">Extending</option><option value="Extending High">Extending High</option></select></div><button id="save-proficiency-btn" type="button">Save proficiency</button><span id="saved-label" class="muted small"></span></div>
+      </div>
+    </section>
+  </div>
+</main>
+<script>
+(() => {
+  const API = (typeof API_URL !== "undefined") ? API_URL : "";
+  const $ = id => document.getElementById(id);
+  let teacherToken = localStorage.getItem("assessmentTeacherToken") || "";
+  let currentStudentId = "";
+  let currentQuizId = "";
+  let overviewRows = [];
+  const grades = ["Not Yet Emerging","Emerging","Developing","Proficient","Proficient High","Extending","Extending High"];
+  function esc(v) { return String(v ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  function showStatus(msg,type="info") { const el=$("status-message"); el.textContent=msg; el.className=`status show ${type}`; window.scrollTo({top:0,behavior:"smooth"}); }
+  function clearStatus(){ $("status-message").className="status"; $("status-message").textContent=""; }
+  async function api(action,data={}) { if(!API) throw new Error("API_URL is missing from config.js."); const r=await fetch(API,{method:"POST",body:JSON.stringify({action,...data})}); const x=await r.json(); if(!x.ok) throw new Error(x.error||"Request failed."); return x; }
+  function gradeClass(g){ return ({"Not Yet Emerging":"grade-NY","Emerging":"grade-E","Developing":"grade-D","Proficient":"grade-P","Proficient High":"grade-PH","Extending":"grade-EX","Extending High":"grade-EXH"})[g]||""; }
+  function showLogin(){ $("results-panel").classList.add("hidden"); $("login-panel").classList.remove("hidden"); }
+  function showResults(){ $("login-panel").classList.add("hidden"); $("results-panel").classList.remove("hidden"); }
+  async function loadOverview(){ clearStatus(); $("results-table").innerHTML='<div class="empty">Loading results…</div>'; const r=await api("studentResultsOverview",{teacherToken}); overviewRows=r.results||[]; renderOverview(); }
+  function renderOverview(){ const search=$("search-input").value.trim().toLowerCase(), filter=$("quiz-filter").value; const rows=overviewRows.filter(r=>(filter==="all"||r.quizID===filter)&&String(r.studentName).toLowerCase().includes(search)); if(!rows.length){ $("results-table").innerHTML='<div class="empty">No quiz submissions found for these filters.</div>'; return; }
+    let html='<table><thead><tr><th>Student</th><th>Quiz</th><th>Questions submitted</th><th>Proficiency</th><th></th></tr></thead><tbody>';
+    rows.forEach(r=>{ const pill=r.proficiency?`<span class="grade-pill ${gradeClass(r.proficiency)}">${esc(r.proficiency)}</span>`:'<span class="muted">Not assigned</span>'; html+=`<tr><td><button class="student-link" data-student="${esc(r.studentId)}" data-quiz="${esc(r.quizID)}">${esc(r.studentName)}</button></td><td><strong>${esc(r.quizID)}</strong></td><td>${Number(r.questionCount)||0}</td><td>${pill}</td><td><button class="secondary" data-student="${esc(r.studentId)}" data-quiz="${esc(r.quizID)}">View</button></td></tr>`; }); html+='</tbody></table>'; $("results-table").innerHTML=html;
+    $("results-table").querySelectorAll("[data-student]").forEach(b=>b.addEventListener("click",()=>loadDetail(b.dataset.student,b.dataset.quiz)));
+  }
+  async function loadDetail(studentId,quizID){ try { clearStatus(); currentStudentId=studentId; currentQuizId=quizID; $("overview-panel").classList.add("hidden"); $("detail-panel").classList.remove("hidden"); $("question-list").innerHTML='<div class="empty">Loading submissions…</div>'; const r=await api("studentResultDetail",{teacherToken,studentId,quizID}); $("detail-name").textContent=r.studentName; $("detail-subtitle").textContent=`${quizID} · ${r.submissions.length} submitted question(s)`; $("proficiency-select").value=r.proficiency||""; $("saved-label").textContent=r.proficiency?"Saved":"Not yet assigned"; renderQuestions(r.submissions||[]); window.scrollTo({top:0,behavior:"smooth"}); } catch(e){ showStatus(e.message,"error"); } }
+  function renderQuestions(subs){ if(!subs.length){ $("question-list").innerHTML='<div class="empty">No submissions were found for this quiz.</div>'; return; }
+    $("question-list").innerHTML=subs.map((s,i)=>{ const response=String(s.response??""); const isCode=s.type!=="written"; const selector=`<div class="field"><label for="correctness-${i}">Question completion</label><select id="correctness-${i}" data-row="${s.row}"><option value="">Not marked</option><option value="NC" ${s.correctness==="NC"?"selected":""}>NC — Not close</option><option value="C" ${s.correctness==="C"?"selected":""}>C — Close</option><option value="P" ${s.correctness==="P"?"selected":""}>P — Perfect</option></select></div>`; return `<article class="question-card"><div class="question-top"><div><p class="question-title">${i+1}. ${esc(s.title||s.questionId)}</p><div class="meta">Question ID: ${esc(s.questionId)} · ${esc(s.timestamp||"")}</div></div><span class="grade-pill">${esc(s.correctness||"Not marked")}</span></div>${isCode?`<pre>${esc(response)}</pre>`:`<div class="submission-text">${esc(response)}</div>`}<div class="marking-row">${selector}<span class="muted small" id="correctness-status-${i}"></span></div></article>`; }).join("");
+    $("question-list").querySelectorAll("select[data-row]").forEach(sel=>sel.addEventListener("change",async()=>{ const status=$("correctness-status-" + [...$("question-list").querySelectorAll("select[data-row]")].indexOf(sel)); status.textContent="Saving…"; sel.disabled=true; try{ await api("saveSubmissionCorrectness",{teacherToken,studentId:currentStudentId,quizID:currentQuizId,row:Number(sel.dataset.row),correctness:sel.value}); status.textContent="Saved"; }catch(e){ status.textContent=e.message; showStatus(e.message,"error"); }finally{ sel.disabled=false; } }));
+  }
+  $("save-proficiency-btn").addEventListener("click",async()=>{ const proficiency=$("proficiency-select").value; if(!proficiency){ showStatus("Choose a proficiency mark before saving.","error"); return; } try{ await api("saveStudentProficiency",{teacherToken,studentId:currentStudentId,quizID:currentQuizId,proficiency}); $("saved-label").textContent="Saved just now"; showStatus("Final proficiency saved.","success"); await loadOverview(); }catch(e){showStatus(e.message,"error");} });
+  $("back-results-btn").addEventListener("click",()=>{ $("detail-panel").classList.add("hidden"); $("overview-panel").classList.remove("hidden"); clearStatus(); });
+  $("search-input").addEventListener("input",renderOverview); $("quiz-filter").addEventListener("change",renderOverview); $("refresh-btn").addEventListener("click",()=>loadOverview().catch(e=>showStatus(e.message,"error")));
+  $("back-btn").addEventListener("click",()=>window.location.href="teacher-dashboard.html");
+  $("logout-btn").addEventListener("click",()=>{localStorage.removeItem("assessmentTeacherToken");teacherToken="";showLogin();showStatus("You have been logged out.");});
+  $("login-form").addEventListener("submit",async e=>{e.preventDefault();try{const r=await api("login",{code:$("teacher-code").value});if(r.role!=="teacher"||!r.teacherToken)throw new Error("That code does not have teacher access.");teacherToken=r.teacherToken;localStorage.setItem("assessmentTeacherToken",teacherToken);showResults();await loadOverview();}catch(err){showStatus(err.message,"error");}});
+  if(teacherToken){showResults();loadOverview().catch(e=>{localStorage.removeItem("assessmentTeacherToken");teacherToken="";showLogin();showStatus(e.message,"error");});}else showLogin();
+})();
+</script>
+</body>
+</html>

@@ -49,6 +49,19 @@
       border:1px solid #a6f4c5; border-radius:8px; }
     .access-code { font-size:28px; font-weight:750; letter-spacing:4px; margin:10px 0; }
     .result-row { margin:10px 0; }
+    .student-list-section {      margin-top: 28px;      border-top: 1px solid #ddd;      padding-top: 22px;    }
+    .student-list {      display: grid;      gap: 10px;      margin-top: 15px;    }
+    .student-row {      display: flex;      align-items: center;      justify-content: space-between;     gap: 14px;     padding: 12px 14px;      border: 1px solid var(--border, #ddd);    border-radius: 8px;      background: var(--card-bg, #fff);    }
+    .student-row-main {      min-width: 0;   }
+    .student-row-name {      font-weight: 650;      overflow-wrap: anywhere;    }
+    .student-row-meta {      margin-top: 4px;      color: #667085;      font-size: 13px;    }
+    .remove-student-btn {      flex: 0 0 auto;      background: #fff;      color: #a12626;      border: 1px solid #d7a0a0;      border-radius: 6px;     padding: 8px 12px !important;    }
+    .remove-student-btn:hover {      background: #fff1f1;    }
+    .list-empty, .list-loading {      color: #667085;      padding: 12px 0; }
+    @media (max-width: 520px) {
+      .student-row {        align-items: flex-start;      }     
+      .remove-student-btn {       padding: 7px 9px !important;      }    
+    }
     .hidden { display:none !important; }
     .section-divider { margin-top:26px; border-top:1px solid var(--border); padding-top:20px; }
     .section-divider p { margin-top:6px; }

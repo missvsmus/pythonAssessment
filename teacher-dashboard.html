@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard | Quiz Environment</title>
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <style>
+    :root { --ink:#172b4d; --muted:#667085; --line:#e3e8ef; --blue:#3157c8; --bg:#f4f6fa; --surface:#fff; --green:#16834a; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:#172b4d; color:#fff; padding:19px 24px; }
+    .header-inner, main { width:min(1100px,calc(100% - 40px)); margin:0 auto; }
+    .header-inner { display:flex; justify-content:space-between; align-items:center; gap:18px; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .mark { width:40px; height:40px; display:grid; place-items:center; border-radius:11px; background:#28436f; font-size:22px; }
+    h1 { margin:0; font-size:1.15rem; }
+    .subtitle { color:#c8d4e6; font-size:.85rem; }
+    button { border:0; border-radius:8px; padding:10px 14px; font:inherit; font-weight:650; cursor:pointer; }
+    button.secondary { background:#fff; color:#26364f; border:1px solid var(--line); }
+    main { padding:34px 0 55px; }
+    .welcome { margin-bottom:25px; }
+    .eyebrow { color:var(--muted); font-size:.76rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+    h2 { margin:4px 0 5px; font-size:1.8rem; }
+    .welcome p { margin:0; color:var(--muted); }
+    .status { display:none; padding:12px 14px; border-radius:9px; margin:0 0 18px; }
+    .status.show { display:block; }
+    .status.error { color:#912018; background:#fff1f0; border:1px solid #f2c4c0; }
+    .status.info { color:#1849a9; background:#eff6ff; border:1px solid #bfdbfe; }
+    .status.success { color:#05603a; background:#ecfdf3; border:1px solid #a6f4c5; }
+    .overview { display:grid; grid-template-columns:repeat(4,1fr); gap:13px; margin-bottom:25px; }
+    .stat { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:17px 18px; }
+    .stat .value { font-size:1.65rem; font-weight:750; line-height:1.2; margin-top:5px; }
+    .stat .label { color:var(--muted); font-size:.84rem; }
+    .section-title { margin:28px 0 13px; font-size:1.05rem; }
+    .actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .action { display:flex; gap:15px; align-items:flex-start; padding:21px; background:var(--surface); border:1px solid var(--line); border-radius:13px; text-decoration:none; color:inherit; transition:transform .15s,border-color .15s,box-shadow .15s; }
+    .action:hover { transform:translateY(-2px); border-color:#b8c7e8; box-shadow:0 7px 20px rgba(23,43,77,.07); }
+    .action-icon { width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center; border-radius:11px; background:#eef2ff; color:#3157c8; font-size:21px; }
+    .action h3 { margin:0 0 4px; font-size:1rem; }
+    .action p { margin:0; color:var(--muted); font-size:.88rem; }
+    .action .arrow { margin-left:auto; color:#98a2b3; font-size:1.2rem; }
+    .action.disabled { opacity:.58; cursor:not-allowed; background:#fafbfc; }
+    .action.disabled:hover { transform:none; border-color:var(--line); box-shadow:none; }
+    .active-bank { display:flex; justify-content:space-between; align-items:center; gap:18px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+    .bank-name { font-weight:750; font-size:1.05rem; }
+    .bank-note { color:var(--muted); font-size:.85rem; }
+    .tag { display:inline-flex; align-items:center; gap:6px; color:#05603a; background:#ecfdf3; border-radius:999px; padding:5px 10px; font-size:.78rem; font-weight:700; white-space:nowrap; }
+    .dot { width:7px; height:7px; background:#16a34a; border-radius:50%; }
+    footer { color:var(--muted); font-size:.8rem; margin-top:28px; }
+    @media(max-width:760px) { .overview { grid-template-columns:repeat(2,1fr); } .actions { grid-template-columns:1fr; } }
+    @media(max-width:480px) { .header-inner { align-items:flex-start; flex-direction:column; } .active-bank { align-items:flex-start; flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">⑂</div>
+        <div><h1>Quiz Environment</h1><div class="subtitle">Teacher workspace</div></div>
+      </div>
+      <button class="secondary" id="logout-btn" type="button">Log out</button>
+    </div>
+  </header>
+  <main>
+    <section class="welcome">
+      <div class="eyebrow">Teacher dashboard</div>
+      <h2>Welcome back</h2>
+      <p>Manage your quiz, students, question sets, and assessment results.</p>
+    </section>
+    <div id="status-message" class="status" role="status" aria-live="polite"></div>
+
+    <section class="overview" aria-label="Student overview">
+      <div class="stat"><div class="label">Total students</div><div class="value" id="total-count">—</div></div>
+      <div class="stat"><div class="label">Not started</div><div class="value" id="not-started-count">—</div></div>
+      <div class="stat"><div class="label">In progress / waiting</div><div class="value" id="in-progress-count">—</div></div>
+      <div class="stat"><div class="label">Completed</div><div class="value" id="complete-count">—</div></div>
+    </section>
+
+    <h3 class="section-title">Quiz administration</h3>
+    <section class="actions">
+      <a class="action" href="index.html">
+        <div class="action-icon" aria-hidden="true">▶</div>
+        <div><h3>Run and monitor quiz</h3><p>Open the assessment interface to monitor students and assign their next questions.</p></div>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="action" href="manage-quizzes.html">
+        <div class="action-icon" aria-hidden="true">☷</div>
+        <div><h3>Manage question sets</h3><p>Choose the question bank and create, edit, or disable questions.</p></div>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="action" href="addStudent.html">
+        <div class="action-icon" aria-hidden="true">♙</div>
+        <div><h3>Manage students</h3><p>Add students, generate access codes, and print student access cards.</p></div>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <div class="action disabled" aria-disabled="true" title="This page will be built next.">
+        <div class="action-icon" aria-hidden="true">▤</div>
+        <div><h3>Student results</h3><p>Review completed quizzes, inspect submissions, and assign marks. Coming next.</p></div>
+        <span class="arrow" aria-hidden="true">›</span>
+      </div>
+    </section>
+
+    <h3 class="section-title">Current question set</h3>
+    <section class="active-bank">
+      <div><div class="eyebrow">Selected question bank</div><div class="bank-name" id="active-quiz">Loading…</div><div class="bank-note" id="bank-note">Retrieving the current question set.</div></div>
+      <span class="tag"><span class="dot"></span> Selected for students</span>
+    </section>
+    <footer>Only one quiz question bank is selected for the student environment at a time. The quiz session start/end controls will be added to the run-quiz workflow.</footer>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const teacherToken = localStorage.getItem("assessmentTeacherToken") || "";
+
+    function showStatus(message, type="info") {
+      const el = $("status-message");
+      el.textContent = message;
+      el.className = `status show ${type}`;
+    }
+    async function api(action, data={}) {
+      if (typeof API_URL === "undefined" || !API_URL) throw new Error("The Apps Script API URL is not configured in config.js.");
+      const response = await fetch(API_URL, { method:"POST", body:JSON.stringify({ action, ...data }) });
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.error || "The request could not be completed.");
+      return result;
+    }
+    function updateCounts(students) {
+      const count = status => students.filter(s => String(s.status || "not started").toLowerCase() === status).length;
+      $("total-count").textContent = students.length;
+      $("not-started-count").textContent = count("not started");
+      $("in-progress-count").textContent = count("working") + count("waiting");
+      $("complete-count").textContent = count("complete");
+    }
+    async function loadDashboard() {
+      if (!teacherToken) { window.location.replace("teacher-login.html"); return; }
+      try {
+        const [dashboard, manager] = await Promise.all([
+          api("teacherDashboard", { teacherToken }),
+          api("quizManagerData", { teacherToken })
+        ]);
+        const students = dashboard.students || [];
+        updateCounts(students);
+        const active = manager.activeQuiz || "Q1";
+        $("active-quiz").textContent = active;
+        const total = (manager.questions || []).length;
+        const enabled = (manager.questions || []).filter(q => String(q.enabled).toLowerCase() !== "false").length;
+        $("bank-note").textContent = `${enabled} enabled question${enabled === 1 ? "" : "s"} out of ${total} total.`;
+      } catch (error) {
+        const message = error.message || "Unable to load the teacher dashboard.";
+        showStatus(message, "error");
+        if (/teacher session expired|teacher authorization/i.test(message)) {
+          localStorage.removeItem("assessmentTeacherToken");
+          window.location.replace("teacher-login.html");
+        }
+      }
+    }
+    $("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("assessmentTeacherToken");
+      window.location.replace("teacher-login.html");
+    });
+    loadDashboard();
+  </script>
+</body>
+</html>

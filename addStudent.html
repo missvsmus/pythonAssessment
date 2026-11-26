@@ -280,7 +280,7 @@
 
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
-
+        await loadStudentList();
         $("student-name").focus();
 
       } catch (error) {
@@ -326,6 +326,7 @@
         $("student-result").style.display = "block";
 
         $("student-name").value = "";
+        await loadStudentList();
         $("student-name").focus();
 
       } catch (error) {
@@ -462,7 +463,7 @@
     
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
-    
+        await loadStudentList();
       } catch (error) {
         localStorage.removeItem("assessmentTeacherToken");
         teacherToken = null;

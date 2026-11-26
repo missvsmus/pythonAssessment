@@ -888,6 +888,19 @@ async function advanceStudent(studentId, nextQuestionId) {
   }
 }
 
+// Restore an existing teacher session when opening the
+// assessment page from the teacher dashboard.
+(async function restoreTeacherSession() {
+  const teacherToken = localStorage.getItem("assessmentTeacherToken");
+
+  if (!teacherToken) return;
+
+  state.role = "teacher";
+  $("logout-btn").classList.remove("hidden");
+
+  await loadTeacherDashboard();
+})();
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")

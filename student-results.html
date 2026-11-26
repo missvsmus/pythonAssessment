@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Student Results | CS 11 Assessment</title>
+  <title>Student Results</title>
   <link rel="icon" href="./favicon.ico" sizes="any">
   <script src="config.js"></script>
   <style>
@@ -54,13 +54,13 @@
   </style>
 </head>
 <body>
-<header><div class="header-inner"><div><h1>Student Results</h1><div class="header-subtitle">CS 11 Coding Assessment</div></div><div class="top-actions"><button class="secondary" id="back-btn" type="button">Back to Dashboard</button><button class="secondary" id="logout-btn" type="button">Log Out</button></div></div></header>
+<header><div class="header-inner"><div><h1>Student Results</h1></div><div class="top-actions"><button class="secondary" id="back-btn" type="button">Back to Dashboard</button><button class="secondary" id="logout-btn" type="button">Log Out</button></div></div></header>
 <main>
   <div id="status-message" class="status" role="status" aria-live="polite"></div>
   <section id="login-panel" class="login-wrap hidden"><div class="card"><h2>Teacher login required</h2><p class="muted">Enter your teacher access code to view student results.</p><form id="login-form"><div class="field"><label for="teacher-code">Teacher access code</label><input id="teacher-code" type="password" autocomplete="current-password" required></div><div style="margin-top:16px"><button type="submit">Log in</button></div></form></div></section>
   <div id="results-panel" class="hidden">
     <section id="overview-panel" class="card">
-      <h2>Quiz results overview</h2><p class="muted small">Each student appears once for each quiz they have submitted. Select a student to review their questions and assign marks.</p>
+      <h2>Quiz results overview</h2><p class="muted small">Each student appears once for each quiz they have submitted. Select a student's quiz to review their questions and assign marks.</p>
       <div class="toolbar" style="margin:16px 0"><div class="field"><label for="search-input">Search students</label><input id="search-input" type="search" placeholder="Search by student name"></div><div class="field" style="max-width:220px"><label for="quiz-filter">Quiz</label><select id="quiz-filter"><option value="all">All quizzes</option><option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option></select></div><button class="secondary" id="refresh-btn" type="button">Refresh</button></div>
       <div id="results-table" class="table-wrap"><div class="empty">Loading results…</div></div>
     </section>

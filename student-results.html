@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Results | CS 11 Assessment</title>
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
-  <link rel="icon" href="./favicon.ico" sizes="any">
   <script src="config.js"></script>
   <style>
     :root { --bg:#f4f6f9; --surface:#fff; --text:#172033; --muted:#667085; --border:#dce2ea; --primary:#3157c8; --primary-dark:#2445a8; --danger:#b42318; --shadow:0 2px 8px rgba(16,24,40,.06); }
@@ -32,7 +30,19 @@
     .grade-pill { display:inline-block; border-radius:7px; padding:5px 10px; font-size:.85rem; font-weight:750; border:1px solid rgba(0,0,0,.08); white-space:nowrap; }
     .grade-NY { background:#7f1d1d; color:#fff; } .grade-E { background:#f4b6b6; color:#651b1b; } .grade-D { background:#fbd3a4; color:#713b08; } .grade-P { background:#c9e8ce; color:#174b27; } .grade-PH { background:#4d965d; color:#fff; } .grade-EX { background:#e4d5f5; color:#49236f; } .grade-EXH { background:#70439a; color:#fff; }
     .empty { text-align:center; padding:28px; color:var(--muted); border:1px dashed var(--border); border-radius:9px; }
-    .detail-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; } .question-card { border:1px solid var(--border); border-radius:10px; padding:17px; margin-top:13px; }
+    .detail-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .question-card { border:1px solid var(--border); border-left:5px solid var(--border); border-radius:10px; padding:17px; margin-top:13px; }
+    /* Question category colours: P = green, D = orange, X = purple. */
+    .question-card.question-P { border-left-color:#269653; background:#f1faf3; }
+    .question-card.question-D { border-left-color:#d97706; background:#fff8ed; }
+    .question-card.question-X { border-left-color:#8752b5; background:#f8f3fc; }
+    /* Correctness colours: NC = red, C = orange, P = green. */
+    .correctness-NC { background:#fff0ef !important; border-color:#d92d20 !important; color:#912018 !important; }
+    .correctness-C { background:#fff5e8 !important; border-color:#e58a16 !important; color:#854d0e !important; }
+    .correctness-P { background:#ecfdf3 !important; border-color:#269653 !important; color:#17633a !important; }
+    .correctness-unmarked { background:#f8fafc !important; border-color:var(--border) !important; color:var(--muted) !important; }
+    .correctness-pill { min-width:76px; text-align:center; }
+    .correctness-select { font-weight:650; }
     .question-top { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; } .question-title { font-weight:750; margin:0; } .meta { color:var(--muted); font-size:.85rem; }
     pre { background:#101828; color:#e6edf7; border-radius:8px; padding:14px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace; margin:12px 0; }
     .submission-text { white-space:pre-wrap; background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:13px; margin-top:12px; overflow-wrap:anywhere; }
@@ -77,6 +87,25 @@
   function clearStatus(){ $("status-message").className="status"; $("status-message").textContent=""; }
   async function api(action,data={}) { if(!API) throw new Error("API_URL is missing from config.js."); const r=await fetch(API,{method:"POST",body:JSON.stringify({action,...data})}); const x=await r.json(); if(!x.ok) throw new Error(x.error||"Request failed."); return x; }
   function gradeClass(g){ return ({"Not Yet Emerging":"grade-NY","Emerging":"grade-E","Developing":"grade-D","Proficient":"grade-P","Proficient High":"grade-PH","Extending":"grade-EX","Extending High":"grade-EXH"})[g]||""; }
+  function questionClass(questionId){
+    const id=String(questionId||"").toUpperCase();
+    if(id.includes("P")) return "question-P";
+    if(id.includes("D")) return "question-D";
+    if(id.includes("X")) return "question-X";
+    return "";
+  }
+  function correctnessClass(value){
+    return ({NC:"correctness-NC",C:"correctness-C",P:"correctness-P"})[String(value||"").toUpperCase()]||"correctness-unmarked";
+  }
+  function updateCorrectnessAppearance(index, value){
+    const select=$("correctness-"+index);
+    const badge=$("correctness-badge-"+index);
+    if(select) select.className="correctness-select "+correctnessClass(value);
+    if(badge){
+      badge.className="grade-pill correctness-pill "+correctnessClass(value);
+      badge.textContent=value||"Not marked";
+    }
+  }
   function showLogin(){ $("results-panel").classList.add("hidden"); $("login-panel").classList.remove("hidden"); }
   function showResults(){ $("login-panel").classList.add("hidden"); $("results-panel").classList.remove("hidden"); }
   async function loadOverview(){ clearStatus(); $("results-table").innerHTML='<div class="empty">Loading results…</div>'; const r=await api("studentResultsOverview",{teacherToken}); overviewRows=r.results||[]; renderOverview(); }
@@ -87,8 +116,8 @@
   }
   async function loadDetail(studentId,quizID){ try { clearStatus(); currentStudentId=studentId; currentQuizId=quizID; $("overview-panel").classList.add("hidden"); $("detail-panel").classList.remove("hidden"); $("question-list").innerHTML='<div class="empty">Loading submissions…</div>'; const r=await api("studentResultDetail",{teacherToken,studentId,quizID}); $("detail-name").textContent=r.studentName; $("detail-subtitle").textContent=`${quizID} · ${r.submissions.length} submitted question(s)`; $("proficiency-select").value=r.proficiency||""; $("saved-label").textContent=r.proficiency?"Saved":"Not yet assigned"; renderQuestions(r.submissions||[]); window.scrollTo({top:0,behavior:"smooth"}); } catch(e){ showStatus(e.message,"error"); } }
   function renderQuestions(subs){ if(!subs.length){ $("question-list").innerHTML='<div class="empty">No submissions were found for this quiz.</div>'; return; }
-    $("question-list").innerHTML=subs.map((s,i)=>{ const response=String(s.response??""); const isCode=s.type!=="written"; const selector=`<div class="field"><label for="correctness-${i}">Question completion</label><select id="correctness-${i}" data-row="${s.row}" data-sheet="${esc(s.sheetName||'Submissions')}"><option value="">Not marked</option><option value="NC" ${s.correctness==="NC"?"selected":""}>NC — Not close</option><option value="C" ${s.correctness==="C"?"selected":""}>C — Close</option><option value="P" ${s.correctness==="P"?"selected":""}>P — Perfect</option></select></div>`; return `<article class="question-card"><div class="question-top"><div><p class="question-title">${i+1}. ${esc(s.title||s.questionId)}</p><div class="meta">Question ID: ${esc(s.questionId)} · ${esc(s.timestamp||"")}</div></div><span class="grade-pill">${esc(s.correctness||"Not marked")}</span></div>${isCode?`<pre>${esc(response)}</pre>`:`<div class="submission-text">${esc(response)}</div>`}<div class="marking-row">${selector}<span class="muted small" id="correctness-status-${i}"></span></div></article>`; }).join("");
-    $("question-list").querySelectorAll("select[data-row]").forEach(sel=>sel.addEventListener("change",async()=>{ const status=$("correctness-status-" + [...$("question-list").querySelectorAll("select[data-row]")].indexOf(sel)); status.textContent="Saving…"; sel.disabled=true; try{ await api("saveSubmissionCorrectness",{teacherToken,studentId:currentStudentId,quizID:currentQuizId,row:Number(sel.dataset.row),sheetName:sel.dataset.sheet,correctness:sel.value}); status.textContent="Saved"; }catch(e){ status.textContent=e.message; showStatus(e.message,"error"); }finally{ sel.disabled=false; } }));
+    $("question-list").innerHTML=subs.map((s,i)=>{ const response=String(s.response??""); const isCode=s.type!=="written"; const selector=`<div class="field"><label for="correctness-${i}">Question completion</label><select id="correctness-${i}" class="correctness-select ${correctnessClass(s.correctness)}" data-row="${s.row}" data-sheet="${esc(s.sheetName||'Submissions')}"><option value="">Not marked</option><option value="NC" ${s.correctness==="NC"?"selected":""}>NC — Not close</option><option value="C" ${s.correctness==="C"?"selected":""}>C — Close</option><option value="P" ${s.correctness==="P"?"selected":""}>P — Perfect</option></select></div>`; return `<article class="question-card ${questionClass(s.questionId)}"><div class="question-top"><div><p class="question-title">${i+1}. ${esc(s.title||s.questionId)}</p><div class="meta">Question ID: ${esc(s.questionId)} · ${esc(s.timestamp||"")}</div></div><span id="correctness-badge-${i}" class="grade-pill correctness-pill ${correctnessClass(s.correctness)}">${esc(s.correctness||"Not marked")}</span></div>${isCode?`<pre>${esc(response)}</pre>`:`<div class="submission-text">${esc(response)}</div>`}<div class="marking-row">${selector}<span class="muted small" id="correctness-status-${i}"></span></div></article>`; }).join("");
+    $("question-list").querySelectorAll("select[data-row]").forEach((sel,index)=>sel.addEventListener("change",async()=>{ const status=$("correctness-status-"+index); updateCorrectnessAppearance(index,sel.value); status.textContent="Saving…"; sel.disabled=true; try{ await api("saveSubmissionCorrectness",{teacherToken,studentId:currentStudentId,quizID:currentQuizId,row:Number(sel.dataset.row),sheetName:sel.dataset.sheet,correctness:sel.value}); status.textContent="Saved"; }catch(e){ status.textContent=e.message; showStatus(e.message,"error"); }finally{ sel.disabled=false; } }));
   }
   $("save-proficiency-btn").addEventListener("click",async()=>{ const proficiency=$("proficiency-select").value; if(!proficiency){ showStatus("Choose a proficiency mark before saving.","error"); return; } try{ await api("saveStudentProficiency",{teacherToken,studentId:currentStudentId,quizID:currentQuizId,proficiency}); $("saved-label").textContent="Saved just now"; showStatus("Final proficiency saved.","success"); await loadOverview(); }catch(e){showStatus(e.message,"error");} });
   $("back-results-btn").addEventListener("click",()=>{ $("detail-panel").classList.add("hidden"); $("overview-panel").classList.remove("hidden"); clearStatus(); });

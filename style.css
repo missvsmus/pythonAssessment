@@ -46,7 +46,7 @@ button.secondary:hover { background: #dce2ea; }
 .hidden { display: none !important; }
 
 .topbar {
-  background: #111827;
+  background: #172b4d;
   color: white;
   padding: 18px 5vw;
   display: flex;

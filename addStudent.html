@@ -89,11 +89,28 @@
       display: none !important;
     }
 
-    .top-bar {
+    .page-header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 24px 0;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
-      margin-bottom: 20px;
+      gap: 10px;
+      box-sizing: border-box;
+    }
+
+    .page-header button {
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+
+    .page-header.hidden {
+      display: none !important;
+    }
+
+    .admin-card h1 {
+      margin-top: 0;
     }
     
     /* Student access card printing */
@@ -173,6 +190,15 @@
 
 <body>
 
+  <header id="page-header" class="page-header hidden">
+    <button type="button" onclick="window.location.href='teacher-dashboard.html'">
+      Back to Dashboard
+    </button>
+    <button type="button" id="logout-btn">
+      Log Out
+    </button>
+  </header>
+
   <main class="admin-container">
 
     <!-- Login -->
@@ -201,15 +227,7 @@
     <!-- Add Students -->
     <section id="admin-screen" class="admin-card hidden">
 
-      <div class="top-bar">
-        <h1>Add Students</h1>
-        <button type="button" onclick="window.location.href='teacher-dashboard.html'">
-          Back to Dashboard
-        </button>
-        <button type="button" id="logout-btn">
-          Log Out
-        </button>
-      </div>
+      <h1>Add Students</h1>
 
       <p>
         Enter a student's name to generate their unique
@@ -349,6 +367,7 @@
 
         $("login-screen").classList.add("hidden");
         $("admin-screen").classList.remove("hidden");
+        $("page-header").classList.remove("hidden");
 
         $("student-name").focus();
 
